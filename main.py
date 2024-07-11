@@ -44,35 +44,32 @@ if __name__ == "__main__":
         ]
 
     processes: list[PostProcessModifier.PostProcessModifier] = [
-        PreciseVerb.PreciseVerb(),
-        TrimDiff.TrimDiff(),
-        TurnDiffToEdition.TurnDiffToInsertion(),
         AttachRefactor.AttachRefactor(),
-        TurnDiffToStringEdition.TurnDiffToStringEdition(),
-        TurnPureToAddOrDel.TurnPureToAddOrDel(),
+        # PreciseVerb.PreciseVerb(),
+        # TrimDiff.TrimDiff(),
+        # TurnDiffToEdition.TurnDiffToInsertion(),
+        # TurnDiffToStringEdition.TurnDiffToStringEdition(),
+        # TurnPureToAddOrDel.TurnPureToAddOrDel(),
     ]
 
-    for s in statements:
-        for p in processes:
-            p.process(s)
+    for p in processes:
+        statements = p.process(statements)
 
     with open("dump_s.json", "w") as f:
         f.write(json.dumps([stmt.as_version() for stmt in statements], indent=2))
 
     classifications: list[ClassificationProcess.Classification] = [
-        # CommentCodeClassification.CommentCodeClassification(),
         RefactoringClassification.RefactoringClassification(),
-        NaiveSystemEventClassification.NaiveSystemEventClassification(),
-        StringEditionClassification.StringEditionClassification(),
-        ReadmeClassification.ReadmeClassification(),
-        GitIgnoreClassification.GitIgnoreClassification(),
-        WhitespaceClassification.WhitespaceClassification(),
-        # RogueBracketClassification.RogueBracketClassification(),
-        AppendOrRemoveConditionClassification.AppendOrRemoveConditionClassification(),
-        CommentModificationClassification.CommentModificationClassification(),
-        TyposClassification.TyposClassification(),
-        BooleanSwitchingClassification.BooleanSwitchingClassification(),
-        ChangeArgumentClassification.ChangeArgumentClassification(),
+        # NaiveSystemEventClassification.NaiveSystemEventClassification(),
+        # StringEditionClassification.StringEditionClassification(),
+        # ReadmeClassification.ReadmeClassification(),
+        # GitIgnoreClassification.GitIgnoreClassification(),
+        # WhitespaceClassification.WhitespaceClassification(),
+        # AppendOrRemoveConditionClassification.AppendOrRemoveConditionClassification(),
+        # CommentModificationClassification.CommentModificationClassification(),
+        # TyposClassification.TyposClassification(),
+        # BooleanSwitchingClassification.BooleanSwitchingClassification(),
+        # ChangeArgumentClassification.ChangeArgumentClassification(),
     ]
 
     score = dict([(c.__class__.__name__, 0) for c in classifications])

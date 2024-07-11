@@ -18,7 +18,8 @@ class AttachRefactor(post_process.PostProcessModifier.PostProcessModifier):
     def level(self):
         return Statement
 
-    def _process(self, statement: Statement, **kargs):
+    def _process(self, st_getter: any, i: int) -> list[tuple[Statement, bool]]:
+        statement: Statement = st_getter(i)
 
         hash = statement.object.id
 

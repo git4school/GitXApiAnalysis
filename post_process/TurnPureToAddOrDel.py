@@ -7,55 +7,60 @@ class TurnPureToAddOrDel(PostProcessModifier):
     def level(self):
         return DiffPart
 
-    def _process(
-        self,
-        statement: Statement,
-        differential: Differential,
-        diffpart: DiffPart,
-        **kargs
-    ):
-        if statement.context.extensions == None:
+    def _process(self, st_getter: any, i: int) -> list[tuple[Statement, bool]]:
+
+        statement: Statement = st_getter(i)
+
+        extensions = statement.object.definition.extensions
+
+        if not "git" in extensions:
             return
 
-        if not "editions" in statement.context.extensions:
+        if not "editions" in extensions:
             return
 
-        key = (
-            statement.object.id
-            + "_"
-            + differential.file
-            + "_"
-            + str(diffpart.a_start_line)
-        )
+        differentials: list[Differential] = extensions["git"]
 
-        if not key in statement.context.extensions["editions"]:
-            return
+        for diff in differentials:
+            if diff.parts == None:
+                continue
+            for diffpart in diff.parts:
+                key = (
+                    statement.object.id
+                    + "_"
+                    + diff.file
+                    + "_"
+                    + str(diffpart.a_start_line)
+                )
 
-        edition = statement.context.extensions["editions"][key]
+                if not key in statement.context.extensions["editions"]:
+                    return
 
-        before = edition["before"]
-        after = edition["after"]
+                edition = statement.context.extensions["editions"][key]
 
-        if len(before) == 0 or len(after) == 0:
-            statement.context.extensions["editions"].pop(key)
+                before = edition["before"]
+                after = edition["after"]
 
-        if len(before) == 0:
-            if not "insertions" in statement.context.extensions:
-                statement.context.extensions["insertions"] = {}
-            statement.context.extensions["insertions"][key] = {
-                "prefix": edition["prefix"],
-                "content": after,
-                "suffix": edition["suffix"],
-            }
+                if len(before) == 0 or len(after) == 0:
+                    statement.context.extensions["editions"].pop(key)
 
-        if len(after) == 0:
-            if not "deletions" in statement.context.extensions:
-                statement.context.extensions["deletions"] = {}
-            statement.context.extensions["deletions"][key] = {
-                "prefix": edition["prefix"],
-                "content": before,
-                "suffix": edition["suffix"],
-            }
+                if len(before) == 0:
+                    if not "insertions" in statement.context.extensions:
+                        statement.context.extensions["insertions"] = {}
+                    statement.context.extensions["insertions"][key] = {
+                        "prefix": edition["prefix"],
+                        "content": after,
+                        "suffix": edition["suffix"],
+                    }
 
-        if len(statement.context.extensions["editions"]) == 0:
-            statement.context.extensions.pop("editions")
+                if len(after) == 0:
+                    if not "deletions" in statement.context.extensions:
+                        statement.context.extensions["deletions"] = {}
+                    statement.context.extensions["deletions"][key] = {
+                        "prefix": edition["prefix"],
+                        "content": before,
+                        "suffix": edition["suffix"],
+                    }
+
+                if len(statement.context.extensions["editions"]) == 0:
+                    statement.context.extensions.pop("editions")

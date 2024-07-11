@@ -14,7 +14,10 @@ class PreciseVerb(PostProcessModifier):
     def level(self):
         return Verb
 
-    def _process(self, statement: Statement, verb: Verb, **kargs):
+    def _process(self, st_getter: any, i: int) -> list[tuple[Statement, bool]]:
+
+        statement: Statement = st_getter(i)
+        verb = statement.verb
         description = str(statement.object.definition.description["en-US"])
 
         for s in self.event_mapping:
