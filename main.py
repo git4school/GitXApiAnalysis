@@ -25,7 +25,6 @@ if __name__ == "__main__":
     raw = None
     with open("original.json") as f:
         raw = json.load(f)
-    total = len(raw)
 
     statements = [Statement(e) for e in raw]
 
@@ -46,6 +45,7 @@ if __name__ == "__main__":
 
     for p in processes:
         statements = p.process(statements)
+    total = len(raw)
 
     with open("dump_s.json", "w") as f:
         f.write(json.dumps([stmt.as_version() for stmt in statements], indent=2))

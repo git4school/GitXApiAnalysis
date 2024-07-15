@@ -11,7 +11,9 @@ class PostProcessModifier:
 
     def trim_diff(diffpart: DiffPart) -> DiffPart:
         content = diffpart.content
-        real_content = [i for i in range(len(content)) if content[i][0] != " "]
+        real_content = [
+            i for i in range(len(content)) if not content[i].startswith(" ")
+        ]
         start_shift = min(real_content)
         end_shift = max(real_content)
         content = [
@@ -24,9 +26,9 @@ class PostProcessModifier:
 
         newPart.content = content
         newPart.a_start_line = diffpart.a_start_line + start_shift
-        newPart.a_interval = len([v for v in content if v[0] != "-"])
+        newPart.a_interval = len([v for v in content if not v.startswith("-")])
         newPart.b_start_line = diffpart.b_start_line + start_shift
-        newPart.b_interval = len([v for v in content if v[0] != "+"])
+        newPart.b_interval = len([v for v in content if not v.startswith("+")])
 
         return newPart
 
