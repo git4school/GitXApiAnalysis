@@ -12,6 +12,12 @@ class Classification:
     def classify(self, statement: Statement) -> bool:
         found_class = None
 
+        if (
+            statement.context.extensions["atomic"]
+            and len(statement.context.extensions["classified"]) > 0
+        ):
+            return False
+
         try:
             found_class = self.process(statement)
         except Exception:

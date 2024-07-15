@@ -5,14 +5,13 @@ import gittoxapi.differential
 import gittoxapi.gitXApi
 
 from post_process import (
+    AddTagToEdition,
     PostProcessModifier,
     FillXApiMissingField,
     PreciseVerb,
-    TrimDiff,
     TurnDiffToEdition,
     AttachRefactor,
-    TurnDiffToStringEdition,
-    TurnPureToAddOrDel,
+    TrimAtomic,
 )
 from classification import (
     ClassificationProcess,
@@ -48,10 +47,9 @@ if __name__ == "__main__":
         FillXApiMissingField.FillXApiMissingField(),
         AttachRefactor.AttachRefactor(),
         PreciseVerb.PreciseVerb(),
-        # TrimDiff.TrimDiff(),
-        # TurnDiffToEdition.TurnDiffToInsertion(),
-        # TurnDiffToStringEdition.TurnDiffToStringEdition(),
-        # TurnPureToAddOrDel.TurnPureToAddOrDel(),
+        TurnDiffToEdition.TurnDiffToEdition(),
+        AddTagToEdition.AddTagToEdition(),
+        TrimAtomic.TrimAtomic(),
     ]
 
     for p in processes:
@@ -63,15 +61,6 @@ if __name__ == "__main__":
     classifications: list[ClassificationProcess.Classification] = [
         NaiveSystemEventClassification.NaiveSystemEventClassification(),
         RefactoringClassification.RefactoringClassification(),
-        # StringEditionClassification.StringEditionClassification(),
-        # ReadmeClassification.ReadmeClassification(),
-        # GitIgnoreClassification.GitIgnoreClassification(),
-        # WhitespaceClassification.WhitespaceClassification(),
-        # AppendOrRemoveConditionClassification.AppendOrRemoveConditionClassification(),
-        # CommentModificationClassification.CommentModificationClassification(),
-        # TyposClassification.TyposClassification(),
-        # BooleanSwitchingClassification.BooleanSwitchingClassification(),
-        # ChangeArgumentClassification.ChangeArgumentClassification(),
     ]
 
     score = dict([(c.__class__.__name__, 0) for c in classifications])
@@ -104,11 +93,7 @@ if __name__ == "__main__":
                 [
                     stmt.as_version()
                     for stmt in statements
-                    if (
-                        stmt.context != None
-                        and stmt.context.extensions != None
-                        and "classified" in stmt.context.extensions
-                    )
+                    if len(stmt.context.extensions["classified"]) > 0
                 ],
                 indent=2,
             )
@@ -120,11 +105,7 @@ if __name__ == "__main__":
                 [
                     stmt.as_version()
                     for stmt in statements
-                    if (
-                        stmt.context != None
-                        and stmt.context.extensions != None
-                        and "atomic" in stmt.context.extensions
-                    )
+                    if stmt.context.extensions["atomic"]
                 ],
                 indent=2,
             )
@@ -136,16 +117,8 @@ if __name__ == "__main__":
                 [
                     stmt.as_version()
                     for stmt in statements
-                    if (
-                        stmt.context != None
-                        and stmt.context.extensions != None
-                        and "classified" in stmt.context.extensions
-                    )
-                    and not (
-                        stmt.context != None
-                        and stmt.context.extensions != None
-                        and "atomic" in stmt.context.extensions
-                    )
+                    if len(stmt.context.extensions["classified"]) > 0
+                    and not stmt.context.extensions["atomic"]
                 ],
                 indent=2,
             )
