@@ -3,7 +3,7 @@ from gittoxapi.differential import DiffPart, Differential
 from tincan import Statement, Verb
 
 
-class TurnDiffToInsertion(PostProcessModifier):
+class TurnDiffToEdition(PostProcessModifier):
     def level(self):
         return DiffPart
 
@@ -11,17 +11,18 @@ class TurnDiffToInsertion(PostProcessModifier):
 
         statement: Statement = st_getter(i)
 
-        extensions = statement.object.definition.extensions
-
-        if not "git" in extensions:
+        if not "git" in statement.object.definition.extensions:
             return
 
-        differentials: list[Differential] = extensions["git"]
+        differentials: list[Differential] = statement.object.definition.extensions[
+            "git"
+        ]
 
         for diff in differentials:
             if diff.parts == None:
                 continue
             for diffpart in diff.parts:
+                diffpart = PostProcessModifier.trim_diff(diffpart)
                 content = diffpart.content
                 if (
                     len(content) < 2
@@ -84,13 +85,19 @@ class TurnDiffToInsertion(PostProcessModifier):
                 if not "editions" in statement.context.extensions:
                     statement.context.extensions["editions"] = {}
 
+                prefix = content[0][1:insertion_begin_index]
+                before = content[0][
+                    insertion_begin_index : len(content[0]) - insertion_end_index
+                ]
+                after = content[1][
+                    insertion_begin_index : len(content[1]) - insertion_end_index
+                ]
+                suffix = content[1][len(content[1]) - insertion_end_index :]
+
                 statement.context.extensions["editions"][key] = {
-                    "prefix": content[0][:insertion_begin_index],
-                    "before": content[0][
-                        insertion_begin_index : len(content[0]) - insertion_end_index
-                    ],
-                    "after": content[1][
-                        insertion_begin_index : len(content[1]) - insertion_end_index
-                    ],
-                    "suffix": content[1][len(content[1]) - insertion_end_index :],
+                    "prefix": prefix,
+                    "before": before,
+                    "after": after,
+                    "suffix": suffix,
+                    "tags": [],
                 }

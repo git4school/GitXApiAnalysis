@@ -23,10 +23,24 @@ class PostProcessModifier:
         newPart = DiffPart()
 
         newPart.content = content
-        newPart.a_start_line += start_shift
+        newPart.a_start_line = diffpart.a_start_line + start_shift
         newPart.a_interval = len([v for v in content if v[0] != "-"])
-        newPart.b_start_line += start_shift
+        newPart.b_start_line = diffpart.b_start_line + start_shift
         newPart.b_interval = len([v for v in content if v[0] != "+"])
+
+        return newPart
+
+    def is_in_comment(raw: str, i: int):
+
+        if "//" not in raw[:i] and "/*" not in raw[:i]:
+            return False
+
+        # TODO check better if // pr /* is in string
+
+        return True
+
+    def is_in_string(raw: str, i: int):
+        return raw[:i].count('"') * raw[i + 1 :].count('"') % 2 == 1
 
     def generate_sub_diffpart(
         parts: list[DiffPart],
@@ -124,7 +138,7 @@ class PostProcessModifier:
 
         i = 0
 
-        elements = [(s, True) for s in statements]
+        elements = [(s, not s.context.extensions["atomic"]) for s in statements]
 
         while i < len(statements):
 
