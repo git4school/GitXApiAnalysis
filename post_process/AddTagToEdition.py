@@ -22,6 +22,8 @@ class AddTagToEdition(PostProcessModifier):
         for key in statement.context.extensions["editions"].keys():
             edition = statement.context.extensions["editions"][key]
 
+            statement.context.extensions["atomic"] = True
+
             prefix = edition["prefix"]
             before = edition["before"]
             after = edition["after"]
@@ -36,7 +38,13 @@ class AddTagToEdition(PostProcessModifier):
             if PostProcessModifier.is_in_string(prefix + after + suffix, len(prefix)):
                 edition["tags"].append("STRING")
 
-            if PostProcessModifier.is_in_comment(prefix + after + suffix, len(prefix)):
+            if (
+                PostProcessModifier.is_in_comment(prefix + after + suffix, len(prefix))
+                or before.strip() in ["/*", "*/"]
+                or after.strip() in ["/*", "*/"]
+                or before.strip() == "//"
+                or after.strip() == "//"
+            ):
                 edition["tags"].append("COMMENT")
 
             if before.strip().count(" ") == 0 and after.strip().count(" ") == 0:

@@ -17,15 +17,7 @@ from classification import (
     ClassificationProcess,
     RefactoringClassification,
     NaiveSystemEventClassification,
-    StringEditionClassification,
-    ReadmeClassification,
-    GitIgnoreClassification,
-    WhitespaceClassification,
-    CommentModificationClassification,
-    AppendOrRemoveConditionClassification,
-    TyposClassification,
-    BooleanSwitchingClassification,
-    ChangeArgumentClassification,
+    EditionClassification,
 )
 
 if __name__ == "__main__":
@@ -33,7 +25,7 @@ if __name__ == "__main__":
     raw = None
     with open("original.json") as f:
         raw = json.load(f)
-    print(len(raw))
+    total = len(raw)
 
     statements = [Statement(e) for e in raw]
 
@@ -61,6 +53,7 @@ if __name__ == "__main__":
     classifications: list[ClassificationProcess.Classification] = [
         NaiveSystemEventClassification.NaiveSystemEventClassification(),
         RefactoringClassification.RefactoringClassification(),
+        EditionClassification.EditionClassification(),
     ]
 
     score = dict([(c.__class__.__name__, 0) for c in classifications])
@@ -78,6 +71,16 @@ if __name__ == "__main__":
     score["remaining"] = len(remaining)
 
     print(score)
+
+    print(
+        "Total:",
+        total,
+        ", Remaining:",
+        len(remaining),
+        ", Progress:",
+        (str((total - len(remaining)) * 100 / total) + " " * 4)[:4],
+        "%",
+    )
 
     with open("dump_remaining.json", "w") as f:
         f.write(

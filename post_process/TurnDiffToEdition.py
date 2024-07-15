@@ -25,7 +25,7 @@ class TurnDiffToEdition(PostProcessModifier):
                 diffpart = PostProcessModifier.trim_diff(diffpart)
                 content = diffpart.content
                 if (
-                    len(content) < 2
+                    len(content) != 2
                     or len(content[0]) <= 1
                     or len(content[1]) <= 1
                     or content[0][0] == content[1][0]
