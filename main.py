@@ -6,6 +6,7 @@ import gittoxapi.gitXApi
 
 from post_process import (
     PostProcessModifier,
+    FillXApiMissingField,
     PreciseVerb,
     TrimDiff,
     TurnDiffToEdition,
@@ -44,6 +45,7 @@ if __name__ == "__main__":
         ]
 
     processes: list[PostProcessModifier.PostProcessModifier] = [
+        FillXApiMissingField.FillXApiMissingField(),
         AttachRefactor.AttachRefactor(),
         PreciseVerb.PreciseVerb(),
         # TrimDiff.TrimDiff(),
@@ -81,11 +83,7 @@ if __name__ == "__main__":
     remaining = [
         stmt.as_version()
         for stmt in statements
-        if not (
-            stmt.context != None
-            and stmt.context.extensions != None
-            and "classified" in stmt.context.extensions
-        )
+        if len(stmt.context.extensions["classified"]) == 0
     ]
 
     score["remaining"] = len(remaining)

@@ -19,8 +19,6 @@ class NaiveSystemEventClassification(
         id = statement.verb.id
 
         if id in self.event_mapping.keys():
-            if statement.context.extensions == None:
-                statement.context.extensions = dict()
             statement.context.extensions["atomic"] = True
             o = self.event_mapping.get(id)
             return o

@@ -20,15 +20,6 @@ class Classification:
         if found_class == None:
             return False
 
-        if statement.context == None:
-            statement.context = Context()
-
-        if statement.context.extensions == None:
-            statement.context.extensions = dict()
-
-        if not "classified" in statement.context.extensions:
-            statement.context.extensions["classified"] = []
-
         statement.context.extensions["classified"].append(found_class)
 
         return True
