@@ -27,5 +27,12 @@ class PreciseVerb(PostProcessModifier):
                 description = description[len(s + " ") :]
                 statement.object.definition.description["en-US"] = description
 
-        if all([git.added for git in statement.object.definition.extensions["git"]]):
+        if "git" in statement.object.definition.extensions and all(
+            [git.added for git in statement.object.definition.extensions["git"]]
+        ):
             verb.id = self.event_mapping["[created]"]
+
+        if "git" in statement.object.definition.extensions and all(
+            [git.deleted for git in statement.object.definition.extensions["git"]]
+        ):
+            verb.id = self.event_mapping["[deleted]"]

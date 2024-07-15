@@ -5,7 +5,6 @@ from gittoxapi.differential import Differential, DiffPart
 import classification.ClassificationProcess
 
 
-# Ensure unique
 class NaiveSystemEventClassification(
     classification.ClassificationProcess.Classification
 ):
@@ -19,8 +18,12 @@ class NaiveSystemEventClassification(
     def process(self, statement: Statement) -> str:
         id = statement.verb.id
 
-        if id in self.event_mapping:
-            return self.event_mapping[id]
+        if id in self.event_mapping.keys():
+            if statement.context.extensions == None:
+                statement.context.extensions = dict()
+            statement.context.extensions["atomic"] = True
+            o = self.event_mapping.get(id)
+            return o
 
         if id == "http://curatr3.com/define/verb/edited":
             diffs: list[Differential] = statement.object.definition.extensions["git"]
@@ -28,4 +31,5 @@ class NaiveSystemEventClassification(
             amounts_of_parts = sum([len(d.parts) for d in diffs])
 
             if amounts_of_parts == 0:
+                statement.context.extensions["atomic"] = True
                 return "METADATA_EDITION"

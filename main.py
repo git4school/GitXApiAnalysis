@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     processes: list[PostProcessModifier.PostProcessModifier] = [
         AttachRefactor.AttachRefactor(),
-        # PreciseVerb.PreciseVerb(),
+        PreciseVerb.PreciseVerb(),
         # TrimDiff.TrimDiff(),
         # TurnDiffToEdition.TurnDiffToInsertion(),
         # TurnDiffToStringEdition.TurnDiffToStringEdition(),
@@ -59,8 +59,8 @@ if __name__ == "__main__":
         f.write(json.dumps([stmt.as_version() for stmt in statements], indent=2))
 
     classifications: list[ClassificationProcess.Classification] = [
+        NaiveSystemEventClassification.NaiveSystemEventClassification(),
         RefactoringClassification.RefactoringClassification(),
-        # NaiveSystemEventClassification.NaiveSystemEventClassification(),
         # StringEditionClassification.StringEditionClassification(),
         # ReadmeClassification.ReadmeClassification(),
         # GitIgnoreClassification.GitIgnoreClassification(),
@@ -110,6 +110,43 @@ if __name__ == "__main__":
                         stmt.context != None
                         and stmt.context.extensions != None
                         and "classified" in stmt.context.extensions
+                    )
+                ],
+                indent=2,
+            )
+        )
+
+    with open("dump_atomic.json", "w") as f:
+        f.write(
+            json.dumps(
+                [
+                    stmt.as_version()
+                    for stmt in statements
+                    if (
+                        stmt.context != None
+                        and stmt.context.extensions != None
+                        and "atomic" in stmt.context.extensions
+                    )
+                ],
+                indent=2,
+            )
+        )
+
+    with open("dump_atomic_remaining.json", "w") as f:
+        f.write(
+            json.dumps(
+                [
+                    stmt.as_version()
+                    for stmt in statements
+                    if (
+                        stmt.context != None
+                        and stmt.context.extensions != None
+                        and "classified" in stmt.context.extensions
+                    )
+                    and not (
+                        stmt.context != None
+                        and stmt.context.extensions != None
+                        and "atomic" in stmt.context.extensions
                     )
                 ],
                 indent=2,
