@@ -55,8 +55,12 @@ class AttachRefactor(post_process.PostProcessModifier.PostProcessModifier):
         while refact_i < len(refactorings):
             refact = refactorings[refact_i]
             refact_type = refact["type"]
-
             refact_i += 1
+
+            if refact_type in ["Extract Method"]:
+                if debug.DEBUG_MODE:
+                    print(refact_type, "NOT MATCHED", "hash:(", hash, ")")
+                continue
 
             before = (
                 refact["leftSideLocations"][0]
@@ -247,99 +251,3 @@ class AttachRefactor(post_process.PostProcessModifier.PostProcessModifier):
                             return [(newstatement, False), (statement, True)]
             if debug.DEBUG_MODE:
                 print(refact_type, "NOT MATCHED", "hash:(", hash, ")")
-
-    def exec_refactoring(
-        shift_before, before, before_content, shift_after, after, after_content
-    ):
-        """
-        Return intermediate content with no refactoring and all code change
-
-        Args:
-            shift_before (_type_): _description_
-            before (_type_): _description_
-            before_content (_type_): _description_
-            shift_after (_type_): _description_
-            after (_type_): _description_
-            after_content (_type_): _description_
-
-        Returns:
-            _type_: _description_
-        """
-        if before == None and after == None:
-            return
-
-        before_beginrow, before_begincol, before_endrow, before_endcol = (
-            (
-                before["startLine"] - shift_before,
-                before["startColumn"] - 1,
-                before["endLine"] - shift_before,
-                before["endColumn"] - 1,
-            )
-            if before != None
-            else (None, None, None, None)
-        )
-
-        after_beginrow, after_begincol, after_endrow, after_endcol = (
-            (
-                after["startLine"] - shift_after,
-                after["startColumn"] - 1,
-                after["endLine"] - shift_after,
-                after["endColumn"] - 1,
-            )
-            if after != None
-            else (None, None, None, None)
-        )
-
-        if after != None:
-            # Manage trailing commas
-            before_stripped = after_content[after_beginrow][:after_begincol].strip()
-            if len(before_stripped) != 0 and before_stripped[-1] == ",":
-                after_begincol = after_content[after_beginrow][:after_begincol].rfind(
-                    ","
-                )
-
-            # Remove refactoring
-            if after_beginrow == after_endrow:
-                # If the interval is within a single line
-                after_content[after_beginrow] = (
-                    after_content[after_beginrow][:after_begincol]
-                    + after_content[after_beginrow][after_endcol:]
-                )
-            else:
-                # Remove text in the first line from begincol to the end of the line
-                after_content[after_beginrow] = (
-                    after_content[after_beginrow][:after_begincol] + "\n"
-                )
-                # Remove text in the last line from the start to endcol
-                after_content[after_endrow] = after_content[after_endrow][after_endcol:]
-
-                for i in range(after_beginrow + 1, after_endrow):
-                    after_content[i] = ""
-
-                # Remove all lines in between but keep one empty lines
-                after_content = (
-                    after_content[: after_beginrow + 1]
-                    + after_content[after_endrow + 1 :]
-                )
-
-        if before != None and (
-            not before["description"] == "original method declaration"
-        ):
-
-            raw = before_content[before_beginrow : before_endrow + 1]
-
-            if len(raw) == 1:
-                raw[0] = raw[0][before_begincol:before_endcol]
-            else:
-                raw[0] = raw[0][before_begincol:]
-                raw[-1] = raw[-1][:before_endcol] + "\n"
-
-            raw = "\n".join(raw)
-
-            after_content[after_beginrow] = (
-                after_content[after_beginrow][:after_begincol]
-                + raw
-                + after_content[after_beginrow][after_begincol:]
-            )
-
-        return after_content
