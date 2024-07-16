@@ -40,10 +40,10 @@ class EditionClassification(classification.ClassificationProcess.Classification)
                 return "COMMENT_ADDITION"
             if is_removed("//"):
                 return "COMMENT_DELETION"
-            if is_removed("/*") or is_added("/*") and not "*/" in after:
+            if (is_removed("/*") or is_added("/*") and not "*/" in after) or (
+                is_removed("*/") or is_added("*/") and not "/*" in after
+            ):
                 return "COMMENT_MOVED"
-            if ("/*" in after and "/*" in before) or ("*/" in after and "*/" in before):
-                return "COMMENT_BLOCK_MOVE"
             else:
                 return "COMMENT_EDITION"
 
@@ -67,7 +67,9 @@ class EditionClassification(classification.ClassificationProcess.Classification)
                 return "TRUE_TO_FALSE"
 
             if strip_prefix.endswith(".") and strip_suffix.startswith("("):
-                return "BUGFIX_WRONG_FUNCTION"
+                return "REPLACE_METHOD"
+            if prefix.endswith(" ") and strip_suffix.startswith("("):
+                return "REPLACE_FUNCTION"
 
         if strip_after == strip_before:
             return "WHITESPACE"
@@ -80,18 +82,17 @@ class EditionClassification(classification.ClassificationProcess.Classification)
         if strip_before.startswith("=") and not strip_before.startswith("=="):
             return "UNASSIGN_VARIABLE"
 
-        if (strip_prefix.count("[") - strip_prefix.count("]")) * (
-            strip_prefix.count("]") - strip_prefix.count("[")
-        ) % 2 == 1:
-            return "BUGFIX_ARRAY_INDEX"
+        c1 = strip_prefix.count("[") - strip_prefix.count("]")
+        c2 = strip_suffix.count("[") - strip_suffix.count("]")
+        if c1 != 0 and c1 == c2:
+            return "CHANGE_ARRAY_INDEX"
 
         if (strip_after + "  ")[:2] in ("&&", "||", "=="):
             return "CHANGE_CONDITION"
 
-        if strip_suffix.startswith("."):
+        if regex.match("[a-zA-Z_$0-9]*( )*.", strip_suffix):
             return "CHANGE_FUNCTION_SOURCE"
 
-        # 439 strip_suffix.startswith("=") and not strip_suffix.startswith("==")
         if regex.match("[a-zA-Z_$0-9]*( )*=[^=]", suffix):
             if " " in strip_after and not " " in strip_before:
                 return "SAVE_VALUE_IN_NEW_VARIABLE"
