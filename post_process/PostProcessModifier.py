@@ -79,27 +79,27 @@ class PostProcessModifier:
                 else:
                     extracted[x - start] = "#" + extracted[x - start]
 
-        extracted = [line for line in extracted if line[0] != "+"]
+        extracted = [line for line in extracted if not line.startswith("+")]
 
         i = 0
         while i < len(extracted):
             line = extracted[i]
 
-            if line[0] == "#":
+            if line.startswith("#"):
                 i += 1
                 continue
 
-            if line[0] == "+":
+            if line.startswith("+"):
                 extracted = extracted[:i] + extracted[i + 1 :]
-            elif line[0] == "-":
+            elif line.startswith("-"):
                 extracted[i] = " " + line[1:]
             else:
                 i += 1
 
         extracted = [l[1:] for l in extracted]
 
-        before_content = [l for l in extracted if len(l) == 0 or l[0] != "+"]
-        after_content = [l for l in extracted if len(l) == 0 or l[0] != "-"]
+        before_content = [l for l in extracted if len(l) == 0 or not l.startswith("+")]
+        after_content = [l for l in extracted if len(l) == 0 or not l.startswith("-")]
 
         newpart.a_interval = len(before_content)
 
