@@ -26,7 +26,9 @@ class NaiveSystemEventClassification(
         if id == "http://curatr3.com/define/verb/edited":
             diffs: list[Differential] = statement.object.definition.extensions["git"]
 
-            amounts_of_parts = sum([len(d.parts) for d in diffs])
+            amounts_of_parts = sum(
+                [len(d.parts) for d in diffs if d.file.endswith(".java")]
+            )
 
             if amounts_of_parts == 0:
                 statement.context.extensions["atomic"] = True
