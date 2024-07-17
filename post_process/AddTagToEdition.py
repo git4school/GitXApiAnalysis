@@ -42,8 +42,8 @@ class AddTagToEdition(PostProcessModifier):
                 PostProcessModifier.is_in_comment(prefix + after + suffix, len(prefix))
                 or before.strip() in ["/*", "*/"]
                 or after.strip() in ["/*", "*/"]
-                or before.strip() == "//"
-                or after.strip() == "//"
+                or before.strip().startswith("//")
+                or after.strip().startswith("//")
             ):
                 edition["tags"].append("COMMENT")
 
