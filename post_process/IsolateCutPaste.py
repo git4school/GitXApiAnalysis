@@ -18,7 +18,7 @@ def is_it_copy_paste(indexed):
         if file1 == file2 and abs(line1 - line2) == 1:
             score += 5
 
-    return score > 2 * 5
+    return score >= 5
 
 
 def consider_equal(s1: str, s2: str):
@@ -171,19 +171,24 @@ def process_finding(st_getter: any, i: int, addition: bool):
                     )
                 elif group and len(base) > 0:
                     p = find_similarity(base, change)
-                    if is_it_copy_paste(p):
+                    if is_it_copy_paste(p) or len(p) == len(base) == 1:
                         interval = [
                             [v[1][0][-1], v[1][0][-1] + 1]
                             for v in p
                             if v[1][0][0] == statement.object.id
+                            and max(v[1][0][-1], v[1][0][-1] + 1)
+                            < (part.a_interval if addition else part.b_interval)
                         ] + [
                             [v[0][0][-1], v[0][0][-1] + 1]
                             for v in p
                             if v[0][0][0] == statement.object.id
+                            and max(v[0][0][-1], v[0][0][-1] + 1)
+                            < (part.b_interval if addition else part.a_interval)
                         ]
-                        interval.sort(key=lambda x: x[0])
-                        split(diff, interval)
-                        break
+                        if len(interval) > 0:
+                            interval.sort(key=lambda x: x[0])
+                            split(diff, interval)
+                            break
 
                     base = []
                     group = False
@@ -201,8 +206,8 @@ class IsolateCutPaste(PostProcessModifier):
 
         if not "git" in statement.object.definition.extensions:
             return
-
-        returns = process_finding(st_getter, i, True)
+        returns = []
+        returns += process_finding(st_getter, i, True)
         returns += process_finding(st_getter, i, False)
         returns += [(statement, False)]
 
