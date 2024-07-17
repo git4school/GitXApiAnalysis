@@ -14,6 +14,8 @@ class PostProcessModifier:
         real_content = [
             i for i in range(len(content)) if not content[i].startswith(" ")
         ]
+        if len(real_content) == 0:
+            return None
         start_shift = min(real_content)
         end_shift = max(real_content)
         content = [
@@ -53,7 +55,7 @@ class PostProcessModifier:
         part = parts[i]
 
         assert all(
-            interval[0] > 0 and interval[1] < len(part.content)
+            interval[0] >= 0 and interval[1] <= len(part.content)
             for interval in intervals
         )
 
@@ -150,7 +152,9 @@ class PostProcessModifier:
                 i += 1
                 continue
 
-            l = self._process(lambda x: elements[x][0], i)
+            l = self._process(
+                lambda x: elements[x][0] if 0 <= x < len(elements) else None, i
+            )
 
             if l == None:
                 l = [(elements[i][0], False)]

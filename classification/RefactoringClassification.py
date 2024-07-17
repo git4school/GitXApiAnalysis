@@ -1,6 +1,7 @@
 from tincan import *
 from gittoxapi.differential import Differential, DiffPart
 import regex
+from post_process import PostProcessModifier
 
 import classification.ClassificationProcess
 
@@ -15,32 +16,29 @@ class RefactoringClassification(classification.ClassificationProcess.Classificat
             if refactorings != None and len(refactorings) > 0:
                 return "REFACTORING"
 
-        # diffs: list[Differential] = statement.object.definition.extensions["git"]
-        # for diff in diffs:
+        if "git" in statement.object.definition.extensions:
 
-        #     for diffpart in diff.parts:
-        #         key = (
-        #             statement.object.id
-        #             + "_"
-        #             + diff.file
-        #             + "_"
-        #             + str(diffpart.a_start_line)
-        #         )
+            differentials: list[Differential] = statement.object.definition.extensions[
+                "git"
+            ]
 
-        #         if (
-        #             "editions" in statement.context.extensions
-        #             and key in statement.context.extensions["editions"]
-        #         ):
-        #             edit = statement.context.extensions["editions"][key]
-
-        #             prefix = str(edit["prefix"])
-        #             suffix = str(edit["suffix"])
-        #             before = str(edit["before"])
-        #             after = str(edit["after"])
-
-        #             if prefix.endswith(" ") and suffix.startswith(" "):
-
-        #                 if regex.match("^[a-zA-Z_$][\w$]*$", after) and regex.match(
-        #                     "^[a-zA-Z_$][\w$]*$", before
-        #                 ):
-        #                     return "REFACTOR_RENAME"
+            if all(
+                [
+                    all(
+                        [
+                            all(
+                                [
+                                    len(line[1:].strip()) == 0
+                                    for line in part.content
+                                    if len(line) >= 1
+                                ]
+                            )
+                            for part in diff.parts
+                            if part.content != None
+                        ]
+                    )
+                    for diff in differentials
+                    if diff.parts != None
+                ]
+            ):
+                return "WHITESPACE"

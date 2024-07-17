@@ -5,6 +5,10 @@ import copy
 
 
 class TurnDiffToEdition(PostProcessModifier):
+
+    def __init__(self):
+        self.count = 0
+
     def level(self):
         return DiffPart
 
@@ -19,7 +23,11 @@ class TurnDiffToEdition(PostProcessModifier):
             "git"
         ]
 
-        if len(differentials) != 1 or differentials[0].parts == None:
+        if (
+            len(differentials) != 1
+            or differentials[0].parts == None
+            or statement.context.extensions["atomic"]
+        ):
             return
 
         splitting_parts: list[object] = []
@@ -29,6 +37,8 @@ class TurnDiffToEdition(PostProcessModifier):
         for i in range(len(diff.parts)):
             real_part = diff.parts[i]
             diffpart = PostProcessModifier.trim_diff(real_part)
+            if diffpart == None:
+                continue
             content = diffpart.content
             if (
                 len(content) != 2

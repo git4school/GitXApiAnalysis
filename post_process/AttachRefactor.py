@@ -114,7 +114,7 @@ class AttachRefactor(post_process.PostProcessModifier.PostProcessModifier):
                     for i in range(len(diffpart.content)):
                         line = diffpart.content[i]
 
-                        if line[0] != "+":
+                        if not line.startswith("+"):
                             before_matched_lines += 1
                         if (
                             before_matched_lines + diffpart.a_start_line
@@ -128,7 +128,7 @@ class AttachRefactor(post_process.PostProcessModifier.PostProcessModifier):
                         ):
                             before_real_interval[1] += 1
 
-                        if line[0] != "-":
+                        if not line.startswith("-"):
                             after_matched_lines += 1
                         if (
                             after_matched_lines + diffpart.b_start_line

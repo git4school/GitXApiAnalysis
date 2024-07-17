@@ -12,6 +12,8 @@ from post_process import (
     TurnDiffToEdition,
     AttachRefactor,
     TrimAtomic,
+    IsolateCutPaste,
+    LineFuser,
 )
 from classification import (
     ClassificationProcess,
@@ -25,7 +27,7 @@ if __name__ == "__main__":
     raw = None
     with open("original.json") as f:
         raw = json.load(f)
-
+    initial_total = len(raw)
     statements = [Statement(e) for e in raw]
 
     for e in statements:
@@ -37,7 +39,9 @@ if __name__ == "__main__":
     processes: list[PostProcessModifier.PostProcessModifier] = [
         FillXApiMissingField.FillXApiMissingField(),
         AttachRefactor.AttachRefactor(),
+        IsolateCutPaste.IsolateCutPaste(),
         PreciseVerb.PreciseVerb(),
+        LineFuser.LineFuser(),
         TurnDiffToEdition.TurnDiffToEdition(),
         AddTagToEdition.AddTagToEdition(),
         TrimAtomic.TrimAtomic(),
@@ -45,7 +49,8 @@ if __name__ == "__main__":
 
     for p in processes:
         statements = p.process(statements)
-    total = len(raw)
+    print("ADDITIONS", len(statements) - initial_total)
+    total = len(statements)
 
     with open("dump_s.json", "w") as f:
         f.write(json.dumps([stmt.as_version() for stmt in statements], indent=2))
@@ -73,7 +78,9 @@ if __name__ == "__main__":
     print(score)
 
     print(
-        "Total:",
+        "Initial:",
+        initial_total,
+        ", Total:",
         total,
         ", Remaining:",
         len(remaining),
