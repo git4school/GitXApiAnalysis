@@ -159,5 +159,17 @@ class PostProcessModifier:
             if l == None:
                 l = [(elements[i][0], False)]
             elements = elements[:i] + l + elements[i + 1 :]
+        elements = [e[0] for e in elements]
 
-        return [e[0] for e in elements]
+        return [
+            e
+            for e in elements
+            if not "git" in e.object.definition.extensions
+            or any(
+                [
+                    any([p != None for p in diff.parts])
+                    for diff in e.object.definition.extensions["git"]
+                    if diff != None and diff.parts != None
+                ]
+            )
+        ]
