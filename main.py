@@ -4,6 +4,8 @@ from tincan import Statement
 import gittoxapi.differential
 import gittoxapi.gitXApi
 
+import matplotlib.pyplot as plt
+
 from post_process import (
     AddTagToEdition,
     PostProcessModifier,
@@ -133,3 +135,55 @@ if __name__ == "__main__":
                 indent=2,
             )
         )
+
+    classified_lines = []
+    unclassified_lines = []
+    classified_git = 0
+    unclassified_git = 0
+
+    for statement in statements:
+        if not "git" in statement.object.definition.extensions:
+            continue
+
+        classified = len(statement.context.extensions["classified"]) > 0
+
+        if classified:
+            classified_git += 1
+        else:
+            unclassified_git += 1
+
+        differentials = statement.object.definition.extensions["git"]
+
+        for diff in differentials:
+            if not diff.file.endswith(".java"):
+                continue
+            if diff.parts == None:
+                continue
+            for part in diff.parts:
+                if part == None or part.content == None:
+                    continue
+                lines = sum([1 for l in part.content if not l.startswith(" ")])
+                if classified:
+                    classified_lines += [lines]
+                else:
+                    unclassified_lines += [lines]
+
+    fig, ax = plt.subplots(1, 2)
+
+    sorted_classified_bins = list(set(classified_lines))
+    sorted_classified_bins.sort()
+
+    sorted_unclassified_bins = list(set(unclassified_lines))
+    sorted_unclassified_bins.sort()
+    max_i = max(
+        max([classified_lines.count(v) for v in sorted_classified_bins]),
+        max([unclassified_lines.count(v) for v in sorted_unclassified_bins]),
+    )
+
+    ax[0].hist(classified_lines, sorted_classified_bins)
+    ax[0].set_title("Classified lines")
+    ax[0].set_ylim([0, max_i])
+    ax[1].hist(unclassified_lines, sorted_unclassified_bins)
+    ax[1].set_title("Remaining lines")
+    ax[1].set_ylim([0, max_i])
+    plt.show()
