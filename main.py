@@ -128,7 +128,7 @@ if __name__ == "__main__":
                     stmt.as_version()
                     for stmt in statements
                     if len(stmt.context.extensions["classified"]) == 0
-                    and not stmt.context.extensions["atomic"]
+                    and stmt.context.extensions["atomic"]
                 ],
                 indent=2,
             )
