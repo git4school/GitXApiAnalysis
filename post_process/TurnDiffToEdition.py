@@ -68,7 +68,7 @@ class TurnDiffToEdition(PostProcessModifier):
                 insertion_end_index < min_len
                 and content[0][len(content[0]) - insertion_end_index - 1]
                 == content[1][len(content[1]) - insertion_end_index - 1]
-                and len(content[0]) - insertion_end_index - 1 > insertion_begin_index
+                and min_len - insertion_end_index - 1 >= insertion_begin_index
             ):
                 insertion_end_index += 1
 
@@ -98,7 +98,7 @@ class TurnDiffToEdition(PostProcessModifier):
                 )
             )
 
-        if len(splitting_parts) == 1:
+        if len(splitting_parts) == 1 and len(diff.parts) == 1:
 
             i, key, v = splitting_parts.pop()
             statement.context.extensions["editions"][key] = v
@@ -132,5 +132,4 @@ class TurnDiffToEdition(PostProcessModifier):
                     diff.parts[i] for i in range(len(diff.parts)) if not i in used
                 ]
                 statements.append(statement)
-
             return [(st, False) for st in statements]

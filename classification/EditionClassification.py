@@ -79,7 +79,9 @@ class EditionClassification(classification.ClassificationProcess.Classification)
 
         if strip_after.startswith("=") and not strip_after.startswith("=="):
             return "ASSIGN_VARIABLE"
-        if strip_before.startswith("=") and not strip_before.startswith("=="):
+        if (
+            strip_before.startswith("=") and not strip_before.startswith("==")
+        ) and prefix.endswith(" "):
             return "UNASSIGN_VARIABLE"
 
         c1 = strip_prefix.count("[") - strip_prefix.count("]")
@@ -90,8 +92,8 @@ class EditionClassification(classification.ClassificationProcess.Classification)
         if (strip_after + "  ")[:2] in ("&&", "||", "=="):
             return "CHANGE_CONDITION"
 
-        if regex.match("[a-zA-Z_$0-9]*( )*.", strip_suffix):
-            return "CHANGE_FUNCTION_SOURCE"
+        # if regex.match("[a-zA-Z_$0-9]*( )*.", strip_suffix):
+        #     return "CHANGE_FUNCTION_SOURCE"
 
         if regex.match("[a-zA-Z_$0-9]*( )*=[^=]", suffix):
             if " " in strip_after and not " " in strip_before:
@@ -103,5 +105,5 @@ class EditionClassification(classification.ClassificationProcess.Classification)
             if not " " in strip_before and not " " in strip_after:
                 return "RENAME"
 
-        if not (" " + prefix)[-1] in [",", ")", ".", "]", " "]:
-            return "REWORD"
+        # if not (" " + prefix)[-1] in [",", ")", ".", "]", " "]:
+        #     return "REWORD"
