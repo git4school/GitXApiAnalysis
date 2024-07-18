@@ -144,7 +144,7 @@ class PostProcessModifier:
 
         elements = [(s, True) for s in statements]
 
-        while i < len(statements):
+        while i < len(elements):
 
             to_process = elements[i][1]
 
