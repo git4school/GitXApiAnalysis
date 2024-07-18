@@ -16,9 +16,14 @@ def is_it_copy_paste(indexed):
         file2, start2, line2 = v2[0][0][1:4]
 
         if file1 == file2 and abs(line1 - line2) == 1:
-            score += 5
+            score += 2
 
-    return score >= 5
+    for l in indexed:
+        l = l[1][-1]
+        if l.strip() in ["", "{", "}"]:
+            score -= 1
+
+    return score >= 3
 
 
 def consider_equal(s1: str, s2: str):
@@ -90,7 +95,10 @@ def process_finding(st_getter: any, i: int, addition: bool):
     thisDifferential: list[Differential] = []
     change = []
 
-    intervals = [i - RANGE, i + 1] if addition else [i, i + RANGE + 1]
+    intervals = [
+        i - RANGE,
+        i + RANGE + 1,
+    ]
 
     for k in range(intervals[0], intervals[1]):
         st = st_getter(k)
@@ -141,7 +149,7 @@ def process_finding(st_getter: any, i: int, addition: bool):
         newstatement.object.definition.extensions["git"] = [newdifferential]
         newstatement.context.extensions["atomic"] = True
         newstatement.context.extensions["refactoring"] = None
-        newstatement.context.extensions["classified"].append("REFACTOR")
+        newstatement.context.extensions["classified"].append("REFACTORING")
         newstatement.context.extensions["classified"].append("CUT-PASTE")
 
         newdifferential.parts = []
@@ -171,7 +179,7 @@ def process_finding(st_getter: any, i: int, addition: bool):
                     )
                 elif group and len(base) > 0:
                     p = find_similarity(base, change)
-                    if is_it_copy_paste(p) or len(p) == len(base) == 1:
+                    if is_it_copy_paste(p):
                         interval = [
                             [v[1][0][-1], v[1][0][-1] + 1]
                             for v in p
@@ -203,12 +211,10 @@ class IsolateCutPaste(PostProcessModifier):
 
     def _process(self, st_getter: any, i: int) -> list[tuple[Statement, bool]]:
         statement: Statement = st_getter(i)
-
         if not "git" in statement.object.definition.extensions:
             return
         returns = []
         returns += process_finding(st_getter, i, True)
         returns += process_finding(st_getter, i, False)
         returns += [(statement, False)]
-
         return returns

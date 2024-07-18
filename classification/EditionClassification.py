@@ -35,6 +35,9 @@ class EditionClassification(classification.ClassificationProcess.Classification)
         def is_added(raw: str):
             return raw in after and not raw in before
 
+        if "STRING" in tags:
+            return "STRING_EDITION"
+
         if "COMMENT" in tags:
             if is_added("//"):
                 return "COMMENT_ADDITION"
@@ -47,15 +50,19 @@ class EditionClassification(classification.ClassificationProcess.Classification)
             else:
                 return "COMMENT_EDITION"
 
-        if "STRING" in tags:
-            return "STRING_EDITION"
-
         if "INSERT" in tags:
-            if strip_prefix.endswith("return"):
+            if strip_prefix.endswith("return") and (
+                strip_suffix.startswith(";") or len(strip_suffix) == 0
+            ):
                 return "ADD_RETURN_VALUE"
 
             if strip_prefix.endswith("=") and not strip_prefix.endswith("=="):
-                return "ADD_VARIABLE_VALUE"
+                if len(strip_before) == 0 and (
+                    strip_suffix == ";" or strip_suffix == ""
+                ):
+                    return "ADD_VARIABLE_VALUE"
+                else:
+                    return "MODIFY_VARIABLE_VALUE"
 
             if len(strip_after) == 1:
                 return "TYPO"
@@ -68,14 +75,22 @@ class EditionClassification(classification.ClassificationProcess.Classification)
 
             if strip_prefix.endswith(".") and strip_suffix.startswith("("):
                 return "REPLACE_METHOD"
-            if prefix.endswith(" ") and strip_suffix.startswith("("):
+            if (
+                prefix.endswith(" ")
+                and not regex.match("[a-zA-Z$0-9]", (" " + strip_prefix)[-1])
+                and strip_suffix.startswith("(")
+            ):
                 return "REPLACE_FUNCTION"
 
-        if strip_after == strip_before:
-            return "WHITESPACE"
+            if (
+                prefix.endswith(" ")
+                and regex.match("[a-zA-Z$0-9]", (" " + strip_prefix)[-1])
+                and strip_suffix.startswith("(")
+            ):
+                return "RENAME_FUNCTION"
 
-        if strip_after.endswith(strip_before) and not "INSERT" in tags:
-            return "ACCUMULATE"
+        # if strip_after.endswith(strip_before) and not "INSERT" in tags:
+        #     return "ACCUMULATE"
 
         if strip_after.startswith("=") and not strip_after.startswith("=="):
             return "ASSIGN_VARIABLE"
@@ -89,21 +104,32 @@ class EditionClassification(classification.ClassificationProcess.Classification)
         if c1 != 0 and c1 == c2:
             return "CHANGE_ARRAY_INDEX"
 
-        if (strip_after + "  ")[:2] in ("&&", "||", "=="):
-            return "CHANGE_CONDITION"
+        complete_after = strip_prefix + strip_after + strip_suffix
+
+        if (
+            complete_after.startswith("if (")
+            or complete_after.startswith("else")
+            or complete_after.startswith("switch")
+            or complete_after.startswith("while")
+            or (
+                complete_after.startswith("for")
+                and (";" in strip_prefix and ";" in strip_suffix)
+            )
+        ):
+            return "CONDITION"
 
         # if regex.match("[a-zA-Z_$0-9]*( )*.", strip_suffix):
         #     return "CHANGE_FUNCTION_SOURCE"
 
         if regex.match("[a-zA-Z_$0-9]*( )*=[^=]", suffix):
-            if " " in strip_after and not " " in strip_before:
-                return "SAVE_VALUE_IN_NEW_VARIABLE"
+            if before.endswith(" "):
+                return "USE_OLD_VARIABLE"
 
-            if " " in strip_before and not " " in strip_after:
-                return "REMOVE_VARIABLE_AND_SAVE_VALUE_IN_OLD_VARIABLE"
+            if after.endswith(" "):
+                return "USE_NEW_VARIABLE"
 
             if not " " in strip_before and not " " in strip_after:
-                return "RENAME"
+                return "RENAME_VARIABLE"
 
         # if not (" " + prefix)[-1] in [",", ")", ".", "]", " "]:
         #     return "REWORD"

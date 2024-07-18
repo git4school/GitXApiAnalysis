@@ -1,3 +1,29 @@
 DEBUG_MODE = False
 SHOW_GRAPH = False
-GENEREATE_CLASS_FILE = True
+GENEREATE_CLASS_FILE = False
+CLASS_MASK = set(
+    [
+        "WHITESPACE",
+        "UNASSIGN_VARIABLE",
+        "STRING_EDITION",
+        "REPLACE_METHOD",
+        "FILE_CREATED",
+        "FILE_DELETED",
+        "METADATA_EDITION",
+        "COMMENT_ADDITION",
+        "COMMENT_DELETION",
+        "COMMENT_EDITION",
+        "RENAME_VARIABLE",
+        "USE_OLD_VARIABLE",
+        "USE_NEW_VARIABLE",
+        "ADD_RETURN_VALUE",
+        "ADD_VARIABLE_VALUE",
+        "ASSIGN_VARIABLE",
+        "MODIFY_VARIABLE_VALUE",
+        "TRUE_TO_FALSE",
+        "CONDITION",
+        "COMMENT_MOVED",
+        "RENAME_FUNCTION",
+        "REPLACE_FUNCTION",
+    ]
+)

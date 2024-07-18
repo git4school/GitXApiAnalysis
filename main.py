@@ -3,6 +3,7 @@ import json
 from tincan import Statement
 import gittoxapi.differential
 import gittoxapi.gitXApi
+import os
 
 import matplotlib.pyplot as plt
 import debug
@@ -196,16 +197,20 @@ if __name__ == "__main__":
 
         for statement in statements:
             classes = classes.union(statement.context.extensions["classified"])
-
         for clazz in classes:
-            with open("dump_clazz_" + clazz + ".json", "w") as f:
-                f.write(
-                    json.dumps(
-                        [
-                            stmt.as_version()
-                            for stmt in statements
-                            if clazz in stmt.context.extensions["classified"]
-                        ],
-                        indent=2,
+            file_name = "dump_clazz_" + clazz + ".json"
+            if clazz in debug.CLASS_MASK:
+                if os.path.isfile(file_name):
+                    os.remove(file_name)
+            else:
+                with open(file_name, "w") as f:
+                    f.write(
+                        json.dumps(
+                            [
+                                stmt.as_version()
+                                for stmt in statements
+                                if clazz in stmt.context.extensions["classified"]
+                            ],
+                            indent=2,
+                        )
                     )
-                )

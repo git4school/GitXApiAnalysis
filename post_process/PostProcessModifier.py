@@ -142,7 +142,7 @@ class PostProcessModifier:
 
         i = 0
 
-        elements = [(s, not s.context.extensions["atomic"]) for s in statements]
+        elements = [(s, True) for s in statements]
 
         while i < len(statements):
 
