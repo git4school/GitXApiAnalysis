@@ -4,12 +4,12 @@ from gittoxapi.differential import DiffPart, Differential
 import copy
 
 
-def is_it_copy_paste(indexed):
+def is_it_copy_paste_accross_file(indexed):
 
     score = 0
 
     if len(indexed) == 0:
-        return 0
+        return False
 
     for v1, v2 in zip(indexed[:-1], indexed[1:]):
         file1, start1, line1 = v1[0][0][1:4]
@@ -24,6 +24,12 @@ def is_it_copy_paste(indexed):
             score -= 1
 
     return score >= 3
+
+
+def is_it_line_moved(indexed):
+
+    indexed = [e for e in indexed if not e[1][-1].strip() in ["", "{", "}"]]
+    return len(indexed) > 0
 
 
 def consider_equal(s1: str, s2: str):
@@ -88,26 +94,20 @@ def find_similarity(base: list[tuple[object, str]], change: list[tuple[object, s
 RANGE = 10
 
 
-def process_finding(st_getter: any, i: int, addition: bool):
-    statement: Statement = st_getter(i)
+def extract_change(begin_i, end_i, i, st_getter, addition):
 
-    differentials: list[Differential] = []
-    thisDifferential: list[Differential] = []
     change = []
+    differentials = []
+    thisDifferentials = []
 
-    intervals = [
-        i - RANGE,
-        i + RANGE + 1,
-    ]
-
-    for k in range(intervals[0], intervals[1]):
+    for k in range(begin_i, end_i):
         st = st_getter(k)
 
         if st != None and "git" in st.object.definition.extensions:
             current = st.object.definition.extensions["git"]
             differentials += current
             if k == i:
-                thisDifferential += current
+                thisDifferentials += current
 
             for diff in current:
                 if diff.parts == None:
@@ -128,32 +128,48 @@ def process_finding(st_getter: any, i: int, addition: bool):
                         if content[i].startswith("-" if addition else "+")
                     ]
 
+    return (change, differentials, thisDifferentials)
+
+
+def split(statement, differentials, diff, k, intervals):
+    part = PostProcessModifier.generate_sub_diffpart(diff.parts, k, intervals, True)
+
+    newstatement: Statement = copy.deepcopy(statement)
+    differentials.append((newstatement, False))
+    key = statement.object.id + "_" + diff.file + "_" + str(intervals[0][0])
+    newstatement.object.id = (
+        "generated~cutpaste~" + newstatement.object.id + "~" + str(key)
+    )
+
+    newdifferential: Differential = Differential(diff.__dict__)
+    newstatement.object.definition.extensions["git"] = [newdifferential]
+    newstatement.context.extensions["atomic"] = True
+    newstatement.context.extensions["refactoring"] = None
+    newstatement.context.extensions["classified"].append("REFACTORING")
+    newstatement.context.extensions["classified"].append("CUT-PASTE")
+
+    newdifferential.parts = []
+    newdifferential.parts.append(part)
+
+
+def process_finding(
+    st_getter: any, i: int, search_range: int, addition: bool, is_it_copy_paste: any
+):
+    statement: Statement = st_getter(i)
+    intervals = [
+        i - search_range,
+        i + search_range + 1,
+    ]
+
+    change, differentials, thisDifferential = extract_change(
+        intervals[0], intervals[1], i, st_getter, addition
+    )
+
     differentials = [d for d in differentials if d != None and d.parts != None]
     thisDifferential = [d for d in thisDifferential if d != None and d.parts != None]
 
     base = []
-
     differentials = []
-
-    def split(diff, intervals):
-        part = PostProcessModifier.generate_sub_diffpart(diff.parts, k, interval, True)
-
-        newstatement: Statement = copy.deepcopy(statement)
-        differentials.append((newstatement, False))
-        key = statement.object.id + "_" + diff.file + "_" + str(intervals[0][0])
-        newstatement.object.id = (
-            "generated~cutpaste~" + newstatement.object.id + "~" + str(key)
-        )
-
-        newdifferential: Differential = Differential(diff.__dict__)
-        newstatement.object.definition.extensions["git"] = [newdifferential]
-        newstatement.context.extensions["atomic"] = True
-        newstatement.context.extensions["refactoring"] = None
-        newstatement.context.extensions["classified"].append("REFACTORING")
-        newstatement.context.extensions["classified"].append("CUT-PASTE")
-
-        newdifferential.parts = []
-        newdifferential.parts.append(part)
 
     for i in range(len(thisDifferential)):
         diff = thisDifferential[i]
@@ -184,18 +200,18 @@ def process_finding(st_getter: any, i: int, addition: bool):
                             [v[1][0][-1], v[1][0][-1] + 1]
                             for v in p
                             if v[1][0][0] == statement.object.id
-                            and max(v[1][0][-1], v[1][0][-1] + 1)
-                            < (part.a_interval if addition else part.b_interval)
+                            and v[1][0][-1]
+                            <= (part.a_interval if addition else part.b_interval)
                         ] + [
                             [v[0][0][-1], v[0][0][-1] + 1]
                             for v in p
                             if v[0][0][0] == statement.object.id
-                            and max(v[0][0][-1], v[0][0][-1] + 1)
-                            < (part.b_interval if addition else part.a_interval)
+                            and v[0][0][-1]
+                            <= (part.b_interval if addition else part.a_interval)
                         ]
                         if len(interval) > 0:
                             interval.sort(key=lambda x: x[0])
-                            split(diff, interval)
+                            split(statement, differentials, diff, k, interval)
                             break
 
                     base = []
@@ -214,7 +230,21 @@ class IsolateCutPaste(PostProcessModifier):
         if not "git" in statement.object.definition.extensions:
             return
         returns = []
-        returns += process_finding(st_getter, i, True)
-        returns += process_finding(st_getter, i, False)
+
+        same_file = process_finding(st_getter, i, 0, True, is_it_line_moved)
+
+        for st in same_file:
+            st: Statement = st[0]
+            st.context.extensions["classified"].append("LINE_MOVED")
+
+        returns += same_file
+
+        returns += process_finding(
+            st_getter, i, True, RANGE, is_it_copy_paste_accross_file
+        )
+        returns += process_finding(
+            st_getter, i, False, RANGE, is_it_copy_paste_accross_file
+        )
+
         returns += [(statement, False)]
         return returns
