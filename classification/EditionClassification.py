@@ -17,10 +17,10 @@ class EditionClassification(classification.ClassificationProcess.Classification)
 
         edition: dict = list(statement.context.extensions["editions"].values())[0]
 
-        prefix: str = edition["prefix"]
-        before: str = edition["before"]
-        after: str = edition["after"]
-        suffix: str = edition["suffix"]
+        prefix: str = edition["prefix"].replace("\t", "    ")
+        before: str = edition["before"].replace("\t", "    ")
+        after: str = edition["after"].replace("\t", "    ")
+        suffix: str = edition["suffix"].replace("\t", "    ")
 
         strip_prefix: str = prefix.strip()
         strip_before: str = before.strip()
@@ -83,9 +83,22 @@ class EditionClassification(classification.ClassificationProcess.Classification)
                 return "REPLACE_FUNCTION"
 
             if (
-                prefix.endswith(" ")
-                and regex.match("[a-zA-Z$0-9]", (" " + strip_prefix)[-1])
-                and strip_suffix.startswith("(")
+                regex.match(
+                    " *((public|private|protected) +|)[a-zA-Z0-9_]+ +[a-zA-Z0-9_]+( )*\\(",
+                    prefix + after + suffix,
+                )
+                != None
+                and regex.match(
+                    " *((public|private|protected) +|)[a-zA-Z0-9_]+ +[a-zA-Z0-9_]+( )*",
+                    prefix + after,
+                )
+                != None
+                and regex.match("[a-zA-Z0-9_]+( )*", after) != None
+                and regex.match(
+                    " *((public|private|protected) +|)([a-zA-Z0-9_]+) +([a-zA-Z0-9_]*) *\(",
+                    prefix,
+                )
+                == None
             ):
                 return "RENAME_FUNCTION"
 
