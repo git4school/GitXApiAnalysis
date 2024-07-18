@@ -68,6 +68,7 @@ class TurnDiffToEdition(PostProcessModifier):
                 insertion_end_index < min_len
                 and content[0][len(content[0]) - insertion_end_index - 1]
                 == content[1][len(content[1]) - insertion_end_index - 1]
+                and len(content[0]) - insertion_end_index - 1 > insertion_begin_index
             ):
                 insertion_end_index += 1
 
