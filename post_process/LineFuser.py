@@ -17,6 +17,9 @@ class LineFuser(PostProcessModifier):
         if not "git" in statement.object.definition.extensions:
             return
 
+        if statement.context.extensions["atomic"]:
+            return
+
         statements = [(statement, False)]
         differentials: list[Differential] = statement.object.definition.extensions[
             "git"
