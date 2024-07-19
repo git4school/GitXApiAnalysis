@@ -7,6 +7,9 @@ import os
 
 import matplotlib.pyplot as plt
 import debug
+import pm4py
+import copy
+from pm4py.objects.log.obj import EventLog, Trace, Event
 
 from post_process import (
     AddTagToEdition,
@@ -20,6 +23,7 @@ from post_process import (
     IsolateCutPaste,
     RemoveNewLineAtEndOfFile,
     LineFuser,
+    SplitImport,
 )
 from classification import (
     ClassificationProcess,
@@ -36,18 +40,20 @@ if __name__ == "__main__":
     with open("original.json") as f:
         raw = json.load(f)
     initial_total = len(raw)
-    statements = [Statement(e) for e in raw]
+    initial_statements = [Statement(e) for e in raw]
+    statements = copy.deepcopy(initial_statements)
 
-    for e in statements:
-        e.object.definition.extensions["git"] = [
+    for event in statements:
+        event.object.definition.extensions["git"] = [
             gittoxapi.differential.Differential(v)
-            for v in e.object.definition.extensions["git"]
+            for v in event.object.definition.extensions["git"]
         ]
 
     processes: list[PostProcessModifier.PostProcessModifier] = [
+        FillXApiMissingField.FillXApiMissingField(),
         SplitMultipleFile.SplitMultipleFile(),
         RemoveNewLineAtEndOfFile.RemoveNewLineAtEndOfFile(),
-        FillXApiMissingField.FillXApiMissingField(),
+        SplitImport.SplitImport(),
         AttachRefactor.AttachRefactor(),
         IsolateCutPaste.IsolateCutPaste(),
         PreciseVerb.PreciseVerb(),
@@ -222,3 +228,61 @@ if __name__ == "__main__":
                             indent=2,
                         )
                     )
+
+    if debug.GENERATE_XES_FROM_INITIAL:
+        keys = [st.object.id for st in initial_statements]
+
+        event_log = EventLog()
+        trace = Trace()
+
+        for key in keys:
+            event = Event()
+            classes = set()
+            for st in statements:
+                if not key in st.object.id:
+                    continue
+                classified = st.context.extensions["classified"]
+
+                if len(classified) == 0:
+                    classes.add("UNKNOWN")
+                else:
+                    classes = classes.union(classified)
+            if len(classes) == 0:
+                classes.add("UNKNOWN")
+            classes = list(classes)
+            classes.sort()
+            event["concept:name"] = "/".join(classes)
+            event["org:resource"] = st.object.definition.description["en-US"]
+            event["time:timestamp"] = st.timestamp
+            trace.append(event)
+
+        event_log.append(trace)
+
+        pm4py.write_xes(event_log, "initial.xes")
+
+    if debug.GENERATE_XES_FROM_CREATED:
+
+        event_log = EventLog()
+        trace = Trace()
+
+        for st in statements:
+            event = Event()
+            classified = st.context.extensions["classified"]
+
+            clazz = "UNKNOWN"
+            if "REFACTORING" in classified or "WHITESPACE" in classified:
+                clazz = "REFACTORING"
+            else:
+                if len(classified) > 1:
+                    print(classified)
+                elif len(classified) != 0:
+                    clazz = classified.pop()
+
+            event["concept:name"] = clazz
+            event["org:resource"] = st.object.definition.description["en-US"]
+            event["time:timestamp"] = st.timestamp
+            trace.append(event)
+
+        event_log.append(trace)
+
+        pm4py.write_xes(event_log, "artificial.xes")
