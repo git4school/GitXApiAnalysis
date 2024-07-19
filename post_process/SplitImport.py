@@ -39,11 +39,15 @@ class SplitImport(PostProcessModifier):
                 last_import_line = 0
                 while (last_import_line) < len(content) and (
                     len(content[last_import_line][1:].strip()) == 0
+                    or content[last_import_line][0] == " "
                     or content[last_import_line][1:].startswith("import")
                 ):
                     last_import_line += 1
 
-                if last_import_line == 0:
+                if last_import_line == 0 or all(
+                    not (l[1:].startswith("import") and l[0] != " ")
+                    for l in content[:last_import_line]
+                ):
                     continue
 
                 newpart: DiffPart = PostProcessModifier.generate_sub_diffpart(
