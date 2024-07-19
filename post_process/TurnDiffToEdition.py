@@ -40,12 +40,7 @@ class TurnDiffToEdition(PostProcessModifier):
             if diffpart == None:
                 continue
             content = diffpart.content
-            if (
-                len(content) != 2
-                or len(content[0]) <= 1
-                or len(content[1]) <= 1
-                or content[0][0] == content[1][0]
-            ):
+            if len(content) != 2 or content[0][0] == content[1][0]:
                 continue
 
             key = (

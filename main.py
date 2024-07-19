@@ -13,10 +13,12 @@ from post_process import (
     PostProcessModifier,
     FillXApiMissingField,
     PreciseVerb,
+    SplitMultipleFile,
     TurnDiffToEdition,
     AttachRefactor,
     TrimAtomic,
     IsolateCutPaste,
+    RemoveNewLineAtEndOfFile,
     LineFuser,
 )
 from classification import (
@@ -24,6 +26,8 @@ from classification import (
     RefactoringClassification,
     NaiveSystemEventClassification,
     EditionClassification,
+    ImportClassification,
+    AddBodyClassification,
 )
 
 if __name__ == "__main__":
@@ -41,6 +45,8 @@ if __name__ == "__main__":
         ]
 
     processes: list[PostProcessModifier.PostProcessModifier] = [
+        SplitMultipleFile.SplitMultipleFile(),
+        RemoveNewLineAtEndOfFile.RemoveNewLineAtEndOfFile(),
         FillXApiMissingField.FillXApiMissingField(),
         AttachRefactor.AttachRefactor(),
         IsolateCutPaste.IsolateCutPaste(),
@@ -63,6 +69,8 @@ if __name__ == "__main__":
         NaiveSystemEventClassification.NaiveSystemEventClassification(),
         RefactoringClassification.RefactoringClassification(),
         EditionClassification.EditionClassification(),
+        ImportClassification.ImportClassification(),
+        AddBodyClassification.AddBodyClassification(),
     ]
 
     score = dict([(c.__class__.__name__, 0) for c in classifications])

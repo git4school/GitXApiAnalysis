@@ -64,15 +64,17 @@ class EditionClassification(classification.ClassificationProcess.Classification)
                 else:
                     return "MODIFY_VARIABLE_VALUE"
 
-            if len(strip_after) == 1:
-                return "TYPO"
+        if len(strip_after) == 1 and "INSERT" in tags:
+            return "TYPO_ADD"
+        if len(strip_before) == 1 and "DELETE" in tags:
+            return "TYPO_DEL"
+
+        if before.strip().lower() == "fals" and after.strip().lower() == "tru":
+            return "FALSE_TO_TRUE"
+        if before.strip().lower() == "tru" and after.strip().lower() == "fals":
+            return "TRUE_TO_FALSE"
 
         if "WORD_EDIT" in tags:
-            if before.strip() == "fals" and after.strip() == "tru":
-                return "FALSE_TO_TRUE"
-            if before.strip() == "tru" and after.strip() == "fals":
-                return "TRUE_TO_FALSE"
-
             if strip_prefix.endswith(".") and strip_suffix.startswith("("):
                 return "REPLACE_METHOD"
             if (
@@ -117,11 +119,12 @@ class EditionClassification(classification.ClassificationProcess.Classification)
         if c1 != 0 and c1 == c2:
             return "CHANGE_ARRAY_INDEX"
 
-        complete_after = strip_prefix + strip_after + strip_suffix
+        complete_after = (strip_prefix + strip_after + strip_suffix).replace(" ", "")
 
         if (
-            complete_after.startswith("if (")
+            complete_after.startswith("if(")
             or complete_after.startswith("else")
+            or complete_after.startswith("}else")
             or complete_after.startswith("switch")
             or complete_after.startswith("while")
             or (
