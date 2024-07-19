@@ -25,6 +25,11 @@ class AddBodyClassification(classification.ClassificationProcess.Classification)
         content = diff.parts[0].content
         addition = False
 
+        content = [
+            l
+            for l in content
+            if len(l[1:].strip()) != 0 and not l[1:].strip().startswith("@")
+        ]
         if not (
             all([l[0] == "+" for l in content]) or all([l[0] == "-" for l in content])
         ):

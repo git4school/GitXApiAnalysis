@@ -5,7 +5,7 @@ import regex
 import classification.ClassificationProcess
 
 
-# Ensure unique class
+# Ensure unique class 302
 class EditionClassification(classification.ClassificationProcess.Classification):
 
     def process(self, statement: Statement) -> str:
@@ -64,6 +64,8 @@ class EditionClassification(classification.ClassificationProcess.Classification)
                 else:
                     return "MODIFY_VARIABLE_VALUE"
 
+            return "ONE_LINE"
+
         if len(strip_after) == 1 and "INSERT" in tags:
             return "TYPO_ADD"
         if len(strip_before) == 1 and "DELETE" in tags:
@@ -104,9 +106,6 @@ class EditionClassification(classification.ClassificationProcess.Classification)
             ):
                 return "RENAME_FUNCTION"
 
-        # if strip_after.endswith(strip_before) and not "INSERT" in tags:
-        #     return "ACCUMULATE"
-
         if strip_after.startswith("=") and not strip_after.startswith("=="):
             return "ASSIGN_VARIABLE"
         if (
@@ -134,9 +133,6 @@ class EditionClassification(classification.ClassificationProcess.Classification)
         ):
             return "CONDITION"
 
-        # if regex.match("[a-zA-Z_$0-9]*( )*.", strip_suffix):
-        #     return "CHANGE_FUNCTION_SOURCE"
-
         if regex.match("[a-zA-Z_$0-9]*( )*=[^=]", suffix):
             if before.endswith(" "):
                 return "USE_OLD_VARIABLE"
@@ -146,6 +142,3 @@ class EditionClassification(classification.ClassificationProcess.Classification)
 
             if not " " in strip_before and not " " in strip_after:
                 return "RENAME_VARIABLE"
-
-        # if not (" " + prefix)[-1] in [",", ")", ".", "]", " "]:
-        #     return "REWORD"
