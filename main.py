@@ -32,6 +32,7 @@ from classification import (
     EditionClassification,
     ImportClassification,
     AddBodyClassification,
+    OneLinerClassification,
 )
 
 if __name__ == "__main__":
@@ -77,6 +78,7 @@ if __name__ == "__main__":
         EditionClassification.EditionClassification(),
         ImportClassification.ImportClassification(),
         AddBodyClassification.AddBodyClassification(),
+        OneLinerClassification.OneLinerClassification(),
     ]
 
     score = dict([(c.__class__.__name__, 0) for c in classifications])
