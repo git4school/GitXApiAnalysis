@@ -24,6 +24,7 @@ from post_process import (
     RemoveNewLineAtEndOfFile,
     LineFuser,
     SplitImport,
+    TrimContentPrefixAndSuffix,
 )
 from classification import (
     ClassificationProcess,
@@ -54,6 +55,7 @@ if __name__ == "__main__":
         FillXApiMissingField.FillXApiMissingField(),
         SplitMultipleFile.SplitMultipleFile(),
         RemoveNewLineAtEndOfFile.RemoveNewLineAtEndOfFile(),
+        TrimContentPrefixAndSuffix.TrimContentPrefixAndSuffix(),
         SplitImport.SplitImport(),
         AttachRefactor.AttachRefactor(),
         IsolateCutPaste.IsolateCutPaste(),
