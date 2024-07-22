@@ -4,3 +4,6 @@ from identifier.tasks_identifier.code_task.ImportTask import ImportTask
 from identifier.tasks_identifier.code_task.LineBreakAndSpacingChangeTask import (
     LineBreakAndSpacingChangeTask,
 )
+from identifier.tasks_identifier.code_task.TrimEditionContentModifier import (
+    TrimEditionContentModifier,
+)
