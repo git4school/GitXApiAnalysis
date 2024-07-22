@@ -10,7 +10,7 @@ class NotSourceTask(TaskIdentifier):
         return "notsource"
 
     def process_differential(
-        self, st_getter: any, i: int, diff: Differential
+        self, st_getter: Callable[[int], Statement | None], i: int, diff: Differential
     ) -> Callable[[Statement], None]:
         if diff.file.endswith(".java"):
             return

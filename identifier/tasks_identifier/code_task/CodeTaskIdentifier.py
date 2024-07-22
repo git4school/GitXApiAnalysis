@@ -14,7 +14,7 @@ class CodeTaskIdentifier(TaskIdentifier):
         i: int,
         intervals: list[tuple[int, int]],
         modify_parent: bool,
-    ):
+    ) -> DiffPart:
         part = parts[i]
 
         assert all(
@@ -123,10 +123,12 @@ class CodeTaskIdentifier(TaskIdentifier):
 
     def process_part(
         self, st_getter: any, i: int, part: DiffPart
-    ) -> dict[str, tuple[list[tuple[int, int]], Callable[[Statement], None]]]:
+    ) -> list[tuple[list[tuple[int, int]], Callable[[Statement], None]]]:
         pass
 
-    def process_differential(self, st_getter: any, i: int, diff: Differential):
+    def process_differential(
+        self, st_getter: Callable[[int], Statement | None], i: int, diff: Differential
+    ):
         if diff.parts == None:
             return []
         newstatements = []
@@ -144,7 +146,7 @@ class CodeTaskIdentifier(TaskIdentifier):
                 ]
         return newstatements
 
-    def process_statement(self, st_getter: any, i: int):
+    def process_statement(self, st_getter: Callable[[int], Statement | None], i: int):
 
         statement: Statement = st_getter(i)
         if TaskIdentifier.is_task_set(statement):
