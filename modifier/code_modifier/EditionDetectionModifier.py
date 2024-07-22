@@ -4,6 +4,45 @@ from gittoxapi.differential import DiffPart, Differential
 from modifier.code_modifier import *
 
 
+def is_in_comment(raw: str, i: int):
+
+    if "//" not in raw[:i] and "/*" not in raw[:i]:
+        return False
+
+    # TODO check better if // pr /* is in string
+
+    return True
+
+
+def is_in_string(raw: str, i: int):
+    return raw[:i].count('"') * raw[i + 1 :].count('"') % 2 == 1
+
+
+def get_tags(prefix: str, before: str, after: str, suffix: str):
+    tags = []
+    if len(before.strip()) == 0:
+        tags.append("INSERT")
+
+    if len(after.strip()) == 0:
+        tags.append("DELETE")
+
+    if is_in_string(prefix + after + suffix, len(prefix)):
+        tags.append("STRING")
+
+    if (
+        is_in_comment(prefix + after + suffix, len(prefix))
+        or before.strip() in ["/*", "*/"]
+        or after.strip() in ["/*", "*/"]
+        or before.strip().startswith("//")
+        or after.strip().startswith("//")
+    ):
+        tags.append("COMMENT")
+
+    if before.strip().count(" ") == 0 and after.strip().count(" ") == 0:
+        tags.append("WORD_EDIT")
+    return tags
+
+
 class EditionDetectionModifier(CodeModifier):
 
     def generator_prefix(self) -> str:
@@ -16,21 +55,11 @@ class EditionDetectionModifier(CodeModifier):
         diff: Differential,
         part: DiffPart,
     ) -> list[tuple[list[tuple[int, int]], Callable[[Statement], None]]]:
-        statement = st_getter(i)
         content = part.content
 
         splitting_parts = []
 
         for i1, i2 in zip(range(len(content) - 1), range(1, len(content))):
-            key = (
-                statement.object.id
-                + "_"
-                + diff.file
-                + "_"
-                + str(part.a_start_line)
-                + "_"
-                + str(i1)
-            )
 
             insertion_begin_index = 1
             insertion_end_index = 0
@@ -75,25 +104,22 @@ class EditionDetectionModifier(CodeModifier):
                 (
                     i1,
                     i2 + 1,
-                    key,
                     {
                         "prefix": prefix,
                         "before": before,
                         "after": after,
                         "suffix": suffix,
-                        "tags": [],
+                        "tags": get_tags(prefix, before, after, suffix),
                     },
                 )
             )
 
-        def edition_applier(statement: Statement, key: str, v: dict):
-            if not "editions" in statement.context.extensions:
-                statement.context.extensions["editions"] = dict()
-            statement.context.extensions["editions"][key] = v
+        def edition_applier(statement: Statement, v: dict):
+            statement.context.extensions["editions"] = v
 
         return [
-            ([(i1, i2)], lambda statement: edition_applier(statement, key, v))
-            for (i1, i2, key, v) in splitting_parts
+            ([(i1, i2)], lambda statement: edition_applier(statement, v))
+            for (i1, i2, v) in splitting_parts
         ]
 
     def process_statement(
