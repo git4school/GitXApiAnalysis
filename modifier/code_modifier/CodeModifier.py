@@ -147,7 +147,7 @@ class CodeModifier(StatementModifier):
                 continue
             returns = self.process_part(st_getter, i, diff, diffpart)
 
-            if returns != None or len(returns) == 0:
+            if returns != None and len(returns) > 0:
                 returns.sort(key=lambda v: -max([o[1] for o in v[0]]))
                 for intervals, modifier in returns:
                     intervals.sort(key=lambda v: -v[1])

@@ -24,7 +24,7 @@ class TrimEditionContentModifier(CodeTaskIdentifier):
         while i < len(content):
             line = content[i]
 
-            if len(line) == 0 or line[0] == " ":
+            if len(line) == 0 or not line[0] in ["+", "-"]:
                 i += 1
                 continue
             first_sign = line[0]
@@ -57,16 +57,18 @@ class TrimEditionContentModifier(CodeTaskIdentifier):
             last_of_second = last_of_second[0] - 1
             min_len = min(last_of_first + 1 - i, last_of_second + 1 - first_of_second)
 
-            splitting_parts.append(
-                ((i, i + min_len), (first_of_second, first_of_second + min_len))
-            )
+            for k in range(min_len):
+                if content[i + k][1:] == content[first_of_second + k][1:]:
+                    splitting_parts.append((i + k, first_of_second + k))
+
+            i = last_of_second + 1
 
         return [
             (
-                list(v),
-                lambda statement: TaskIdentifier.task_applier("TrimEditionContent", {}),
+                [(p1, p1 + 1), (p2, p2 + 1)],
+                TaskIdentifier.task_applier("TrimEditionContent", {}),
             )
-            for v in splitting_parts
+            for (p1, p2) in splitting_parts
         ]
 
     def process_statement(
