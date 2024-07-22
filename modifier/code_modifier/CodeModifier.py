@@ -121,7 +121,11 @@ class CodeModifier(StatementModifier):
         return newstatement
 
     def process_part(
-        self, st_getter: Callable[[int], Statement | None], i: int, part: DiffPart
+        self,
+        st_getter: Callable[[int], Statement | None],
+        i: int,
+        diff: Differential,
+        part: DiffPart,
     ) -> list[tuple[list[tuple[int, int]], Callable[[Statement], None]]]:
         pass
 
@@ -134,7 +138,7 @@ class CodeModifier(StatementModifier):
         for diffpart in diff.parts:
             if diffpart.content == None and self.ignore_none_part():
                 continue
-            returns = self.process_part(st_getter, i, diffpart)
+            returns = self.process_part(st_getter, i, diff, diffpart)
 
             if returns != None:
                 newstatements += [
