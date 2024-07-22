@@ -1,10 +1,6 @@
-from typing import Callable
-from tincan import Statement
+from modifier.Modifier import Modifier
 
 
-class ActivityIdentifier:
+class ActivityIdentifier(Modifier):
     def __init__(self) -> None:
-        pass
-
-    def process_statement(self, st_getter: Callable[[int], Statement | None], i: int):
         pass
