@@ -121,7 +121,7 @@ class CodeModifier(StatementModifier):
         return newstatement
 
     def process_part(
-        self, st_getter: any, i: int, part: DiffPart
+        self, st_getter: Callable[[int], Statement | None], i: int, part: DiffPart
     ) -> list[tuple[list[tuple[int, int]], Callable[[Statement], None]]]:
         pass
 
