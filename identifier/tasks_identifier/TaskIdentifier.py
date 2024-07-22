@@ -35,7 +35,9 @@ class TaskIdentifier(ActivityIdentifier, StatementModifier):
     ) -> Statement:
         return self.modifier_generator(statement, diff, modifer)
 
-    def process_statement(self, st_getter: Callable[[int], Statement | None], i: int):
+    def process_statement(
+        self, st_getter: Callable[[int], Statement | None], i: int
+    ) -> list[Statement]:
         statement: Statement = st_getter(i)
         if TaskIdentifier.is_task_set(statement):
             return [statement]

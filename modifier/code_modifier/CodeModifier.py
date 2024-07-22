@@ -127,7 +127,7 @@ class CodeModifier(StatementModifier):
 
     def process_differential(
         self, st_getter: Callable[[int], Statement | None], i: int, diff: Differential
-    ):
+    ) -> list[Statement]:
         if diff.parts == None:
             return []
         newstatements = []
@@ -143,7 +143,9 @@ class CodeModifier(StatementModifier):
                 ]
         return newstatements
 
-    def process_statement(self, st_getter: Callable[[int], Statement | None], i: int):
+    def process_statement(
+        self, st_getter: Callable[[int], Statement | None], i: int
+    ) -> list[Statement]:
 
         statement: Statement = st_getter(i)
 

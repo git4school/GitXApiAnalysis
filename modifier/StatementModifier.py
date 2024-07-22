@@ -57,7 +57,9 @@ class StatementModifier(Modifier):
     ) -> Callable[[Statement], None]:
         pass
 
-    def process_statement(self, st_getter: Callable[[int], Statement | None], i: int):
+    def process_statement(
+        self, st_getter: Callable[[int], Statement | None], i: int
+    ) -> list[Statement]:
 
         statement: Statement = st_getter(i)
 
