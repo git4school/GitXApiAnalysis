@@ -111,11 +111,17 @@ class CodeModifier(StatementModifier):
         newpart = CodeModifier.generate_sub_diffpart(diff.parts, i, intervals, True)
         newstatement: Statement = StatementModifier.new_statement(
             origin=statement,
-            id=self.generator_prefix() + "~" + str(i) + "~" + hash(intervals),
+            id=self.generator_prefix()
+            + "~"
+            + str(i)
+            + "~"
+            + str(intervals[0][0])
+            + "~"
+            + str(intervals[0][1]),
         )
         newdiff = deepcopy(diff)
         newdiff.parts = [newpart]
-        newstatement.object.definition.extensions["git"] = newdiff
+        newstatement.object.definition.extensions["git"] = [newdiff]
 
         modifer(newstatement)
         return newstatement
@@ -135,16 +141,22 @@ class CodeModifier(StatementModifier):
         if diff.parts == None:
             return []
         newstatements = []
+        part_index = 0
         for diffpart in diff.parts:
             if diffpart.content == None and self.ignore_none_part():
                 continue
             returns = self.process_part(st_getter, i, diff, diffpart)
 
-            if returns != None:
-                newstatements += [
-                    self.modifier_generator(st_getter(i), diff, i, intervals, modifier)
-                    for (intervals, modifier) in returns.values()
-                ]
+            if returns != None or len(returns) == 0:
+                returns.sort(key=lambda v: -max([o[1] for o in v[0]]))
+                for intervals, modifier in returns:
+                    intervals.sort(key=lambda v: -v[1])
+                    newstatements.append(
+                        self.modifier_generator(
+                            st_getter(i), diff, part_index, intervals, modifier
+                        )
+                    )
+            part_index += 1
         return newstatements
 
     def process_statement(
