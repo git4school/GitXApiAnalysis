@@ -43,19 +43,19 @@ class CodeModifier(StatementModifier):
                 else:
                     extracted[x - start] = "#" + extracted[x - start]
 
-        extracted = [line for line in extracted if not line.startswith("+")]
-
-        before_content = [l for l in extracted if len(l) == 0 or not l.startswith("+")]
-        after_content = [l for l in extracted if len(l) == 0 or not l.startswith("-")]
-
-        newpart.a_interval = len(before_content)
-        newpart.b_interval = len(after_content)
-
         newpart.content = [
-            line[1 if line[0] == "#" else None :]
+            (" " if line[0] == "+" else "")
+            + line[1 if line[0] in ["+", "#"] else None :]
             for line in extracted
             if line[0] != "-"
         ]
+
+        newpart.a_interval = len(
+            [None for l in newpart.content if not l.startswith("+")]
+        )
+        newpart.b_interval = len(
+            [None for l in newpart.content if not l.startswith("-")]
+        )
 
         if not modify_parent:
             return newpart
@@ -65,15 +65,15 @@ class CodeModifier(StatementModifier):
             + [
                 line[1 if line[0] == "#" else None :]
                 for line in extracted
-                if line[0] != "#" or line[1] == " "
+                if (line[0] != "#" or line[1] == " ")
             ]
             + part.content[end:]
         )
 
         shift = newpart.b_interval - newpart.a_interval
 
-        part.a_interval += newpart.b_interval
-        part.a_interval -= len(extracted) - len(after_content)
+        part.a_interval = len([None for l in part.content if l.startswith("+")])
+        part.a_interval = len([None for l in part.content if l.startswith("+")])
 
         for j in range(i + 1, len(parts)):
             part = parts[j]
