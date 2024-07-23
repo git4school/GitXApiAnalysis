@@ -26,5 +26,5 @@ class CodeTaskIdentifier(TaskIdentifier, CodeModifier):
 
         statement: Statement = st_getter(i)
         if TaskIdentifier.is_task_set(statement):
-            return
+            return [statement]
         return super().process_statement(st_getter, i)

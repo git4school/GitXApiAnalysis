@@ -35,6 +35,7 @@ class CodeModifier(StatementModifier):
 
         extracted = part.content[start:end]
 
+        # Mark all lines that should be extracted
         for interval in intervals:
             for x in range(interval[0], interval[1]):
                 if extracted[x - start][0] == "#":
@@ -44,31 +45,17 @@ class CodeModifier(StatementModifier):
 
         extracted = [line for line in extracted if not line.startswith("+")]
 
-        i = 0
-        while i < len(extracted):
-            line = extracted[i]
-
-            if line.startswith("#"):
-                i += 1
-                continue
-
-            if line.startswith("+"):
-                extracted = extracted[:i] + extracted[i + 1 :]
-            elif line.startswith("-"):
-                extracted[i] = " " + line[1:]
-            else:
-                i += 1
-
-        extracted = [l[1:] for l in extracted]
-
         before_content = [l for l in extracted if len(l) == 0 or not l.startswith("+")]
         after_content = [l for l in extracted if len(l) == 0 or not l.startswith("-")]
 
         newpart.a_interval = len(before_content)
-
         newpart.b_interval = len(after_content)
 
-        newpart.content = extracted
+        newpart.content = [
+            line[1 if line[0] == "#" else None :]
+            for line in extracted
+            if line[0] != "-"
+        ]
 
         if not modify_parent:
             return newpart
@@ -76,9 +63,9 @@ class CodeModifier(StatementModifier):
         part.content = (
             part.content[:start]
             + [
-                " " + l[1:] if len(l) > 0 else ""
-                for l in extracted
-                if len(l) == 0 or l[0] != "-"
+                line[1 if line[0] == "#" else None :]
+                for line in extracted
+                if line[0] != "#" or line[1] == " "
             ]
             + part.content[end:]
         )
