@@ -16,3 +16,6 @@ from identifier.tasks_identifier.code_task.ClassAdditionTask import (
 from identifier.tasks_identifier.code_task.FunctionAdditionTask import (
     FunctionAdditionTask,
 )
+from identifier.tasks_identifier.code_task.AnnotationAdditionTask import (
+    AnnotationAdditionTask,
+)
