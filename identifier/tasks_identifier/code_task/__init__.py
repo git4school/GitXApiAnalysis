@@ -10,3 +10,6 @@ from identifier.tasks_identifier.code_task.TrimEditionContentModifier import (
 from identifier.tasks_identifier.code_task.RefactoringMinerTask import (
     RefactoringMinerTask,
 )
+from identifier.tasks_identifier.code_task.ClassAdditionTask import (
+    ClassAdditionTask,
+)
