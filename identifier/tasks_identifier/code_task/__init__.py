@@ -19,3 +19,6 @@ from identifier.tasks_identifier.code_task.FunctionAdditionTask import (
 from identifier.tasks_identifier.code_task.AnnotationAdditionTask import (
     AnnotationAdditionTask,
 )
+from identifier.tasks_identifier.code_task.EmptyLineChangeTask import (
+    EmptyLineChangeTask,
+)
