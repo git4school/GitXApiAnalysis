@@ -28,3 +28,6 @@ from identifier.tasks_identifier.code_task.ForAdditionTask import (
 from identifier.tasks_identifier.code_task.IfAdditionTask import (
     IfAdditionTask,
 )
+from identifier.tasks_identifier.code_task.ReturnTask import (
+    ReturnTask,
+)
