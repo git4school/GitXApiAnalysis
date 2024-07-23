@@ -129,10 +129,14 @@ class CodeModifier(StatementModifier):
             return []
         newstatements = []
         part_index = 0
-        for diffpart in diff.parts:
+        while part_index < len(diff.parts):
+            diffpart = diff.parts[part_index]
             if diffpart.content == None and self.ignore_none_part():
                 continue
+            length_snapshot = len(diff.parts)
             returns = self.process_part(st_getter, i, diff, diffpart)
+            if len(diff.parts) == length_snapshot - 1:
+                part_index -= 1
 
             if returns != None and len(returns) > 0:
                 returns.sort(key=lambda v: -max([o[1] for o in v[0]]))
