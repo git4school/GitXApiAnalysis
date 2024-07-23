@@ -39,6 +39,9 @@ class LineBreakAndSpacingChangeTask(CodeTaskIdentifier):
                     and len(buffer_add.strip()) != 0
                 ):
                     extractions.append((begin_i, line_i + 1))
+                    buffer_add = ""
+                    buffer_del = ""
+                    begin_i = -1
 
         return [
             (
