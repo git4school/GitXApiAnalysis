@@ -45,8 +45,6 @@ def indentify_edition(prefix, before, after, suffix, tags):
             else:
                 return "MODIFY_VARIABLE_VALUE"
 
-        return "ONE_LINE"
-
     if len(strip_after) == 1 and "INSERT" in tags:
         return "TYPO_ADD"
     if len(strip_before) == 1 and "DELETE" in tags:
