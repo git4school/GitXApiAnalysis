@@ -44,10 +44,9 @@ class CodeModifier(StatementModifier):
                     extracted[x - start] = "#" + extracted[x - start]
 
         newpart.content = [
-            (" " if line[0] == "+" else "")
-            + line[1 if line[0] in ["+", "#"] else None :]
+            line[1 if line[0] == "#" else None :]
             for line in extracted
-            if line[0] != "-"
+            if not line[0] in ["+", "-"]
         ]
 
         newpart.a_interval = len(
@@ -63,9 +62,11 @@ class CodeModifier(StatementModifier):
         part.content = (
             part.content[:start]
             + [
-                line[1 if line[0] == "#" else None :]
+                (
+                    (" " if line[0] == "#" else "")
+                    + line[2 if line[0] == "#" else None :]
+                )
                 for line in extracted
-                if (line[0] != "#" or line[1] == " ")
             ]
             + part.content[end:]
         )
@@ -167,4 +168,4 @@ class CodeModifier(StatementModifier):
 
         for diff in differentials:
             new_statements += self.process_differential(st_getter, i, diff)
-        return [statement] + new_statements
+        return new_statements + [statement]
