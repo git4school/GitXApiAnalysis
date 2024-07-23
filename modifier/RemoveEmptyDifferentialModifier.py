@@ -14,7 +14,7 @@ class RemoveEmptyDifferentialModifier(StatementModifier):
         ]
 
         statement.object.definition.extensions["git"] = [
-            d for d in differentials if len(d.parts) > 0
+            d for d in differentials if d.parts != None and len(d.parts) > 0
         ]
 
         return [statement]
