@@ -44,9 +44,10 @@ class CodeModifier(StatementModifier):
                     extracted[x - start] = "#" + extracted[x - start]
 
         newpart.content = [
-            line[1 if line[0] == "#" else None :]
+            (" " if line[0] == "-" else "")
+            + line[1 if line[0] in ["#", "-"] else None :]
             for line in extracted
-            if not line[0] in ["+", "-"]
+            if not line[0] in ["+"]
         ]
 
         newpart.a_interval = len(
