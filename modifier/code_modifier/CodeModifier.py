@@ -141,6 +141,7 @@ class CodeModifier(StatementModifier):
                 part_index -= 1
 
             if returns != None and len(returns) > 0:
+                returns = [v for v in returns if len(v[0]) > 0]
                 returns.sort(key=lambda v: -max([o[1] for o in v[0]]))
                 for intervals, modifier in returns:
                     intervals.sort(key=lambda v: -v[1])
