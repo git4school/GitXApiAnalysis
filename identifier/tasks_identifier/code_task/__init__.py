@@ -7,3 +7,6 @@ from identifier.tasks_identifier.code_task.LineBreakAndSpacingChangeTask import 
 from identifier.tasks_identifier.code_task.TrimEditionContentModifier import (
     TrimEditionContentModifier,
 )
+from identifier.tasks_identifier.code_task.RefactoringMinerTask import (
+    RefactoringMinerTask,
+)
