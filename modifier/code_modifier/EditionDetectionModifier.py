@@ -66,6 +66,7 @@ class EditionDetectionModifier(CodeModifier):
 
             min_len = min(len(content[i1]), len(content[i2]))
             min_len_stripped = min(len(content[i1].strip()), len(content[i2].strip()))
+            max_len_stripped = max(len(content[i1].strip()), len(content[i2].strip()))
 
             if min_len == 0 or not (
                 (content[i1][0] == "+" and content[i2][0] == "-")
@@ -97,7 +98,9 @@ class EditionDetectionModifier(CodeModifier):
             ]
             suffix = content[i2][len(content[i2]) - insertion_end_index :]
 
-            if len(prefix + suffix) <= 0.2 * min_len and min_len_stripped >= 4:
+            if len(prefix.strip() + suffix.strip()) <= 0.2 * min_len and (
+                min_len_stripped >= 4 or max_len_stripped >= 4
+            ):
                 continue
 
             splitting_parts.append(
