@@ -15,6 +15,7 @@ def find_delim(lines: list[str], begin_col: int = None, begin_row: int = 0, deli
             line: str = line[(begin_col + 1) if begin_col != None else 0 :]
         if line.count(end_delim) < still_opened:
             still_opened -= line.count(end_delim)
+            still_opened += line.count(begin_delim)
         else:
             for c_i, c in zip(range(len(line)), line):
                 if c == begin_delim:

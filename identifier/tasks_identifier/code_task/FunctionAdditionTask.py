@@ -3,6 +3,7 @@ from tincan import Statement
 from gittoxapi.differential import DiffPart, Differential
 from identifier.tasks_identifier.code_task.CodeTaskIdentifier import *
 import regex
+import utils
 
 
 class FunctionAdditionTask(CodeTaskIdentifier):
@@ -40,24 +41,18 @@ class FunctionAdditionTask(CodeTaskIdentifier):
                 first = -1
                 last = -1
                 opened = 0
-                while last == -1 and i < len(part.content):
-                    current_line: str = part.content[i]
-                    if (
-                        first == -1
-                        and current_line.count("{") - current_line.count("}") > 0
-                    ):
-                        first = i
-                        opened = current_line.count("{") - current_line.count("}")
-                    else:
-                        opened += current_line.count("{") - current_line.count("}")
+                brackets = utils.find_delim(part.content, None, i, delim="{")
 
-                    if first != -1 and last == -1 and opened <= 0:
-                        last = i
-                    i += 1
-                if last != -1:
-                    first_1 = min(initial_i, first)
-                    first_2 = max(initial_i + 1, first + 1)
-                    extractions.append(([(first_1, first_2), (last, last + 1)], line))
+                if brackets != None:
+                    extractions.append(
+                        (
+                            [
+                                (i, brackets[0][0] + 1),
+                                (brackets[1][0], brackets[1][0] + 1),
+                            ],
+                            line,
+                        )
+                    )
             i += 1
         return [
             (
