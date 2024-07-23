@@ -13,6 +13,8 @@ class RemoveEmptyDifferentialModifier(StatementModifier):
             "git"
         ]
 
-        differentials = [d for d in differentials if len(d.parts) > 0]
+        statement.object.definition.extensions["git"] = [
+            d for d in differentials if len(d.parts) > 0
+        ]
 
         return [statement]
