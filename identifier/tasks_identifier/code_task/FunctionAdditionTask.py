@@ -26,12 +26,13 @@ class FunctionAdditionTask(CodeTaskIdentifier):
                 i += 1
                 continue
             line: str = line[1:].strip().replace("\t", " ")
-
-            if regex.match(
-                "(public|protected|private|static|\s) +[\w\<\>\[\]]+\s+(\w+) *\([^\)]*\) *(\{?|[^;])",
-                line,
+            if (
+                regex.match(
+                    "(public |protected |private |static )*[\w\<\>\[\]]+\s+(\w+) *\([^\)]*\) *(\{?|[^;])",
+                    line,
+                )
+                != None
             ):
-
                 if "{" in line:
                     line = line[: line.index("{")].strip()
 
