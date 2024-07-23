@@ -106,7 +106,9 @@ class CodeModifier(StatementModifier):
             + "~"
             + str(intervals[0][0])
             + "~"
-            + str(intervals[0][1]),
+            + str(intervals[0][1])
+            + "~"
+            + statement.object.id,
         )
         newdiff = deepcopy(diff)
         newdiff.parts = [newpart]
