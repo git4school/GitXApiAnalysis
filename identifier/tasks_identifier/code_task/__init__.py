@@ -13,3 +13,6 @@ from identifier.tasks_identifier.code_task.RefactoringMinerTask import (
 from identifier.tasks_identifier.code_task.ClassAdditionTask import (
     ClassAdditionTask,
 )
+from identifier.tasks_identifier.code_task.FunctionAdditionTask import (
+    FunctionAdditionTask,
+)
