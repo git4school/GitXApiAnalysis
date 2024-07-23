@@ -65,14 +65,18 @@ class EditionDetectionModifier(CodeModifier):
             insertion_end_index = 0
 
             min_len = min(len(content[i1]), len(content[i2]))
-            min_len_stripped = min(len(content[i1].strip()), len(content[i2].strip()))
-            max_len_stripped = max(len(content[i1].strip()), len(content[i2].strip()))
 
             if min_len == 0 or not (
                 (content[i1][0] == "+" and content[i2][0] == "-")
                 or (content[i1][0] == "-" and content[i2][0] == "+")
             ):
                 continue
+            min_len_stripped = min(
+                len(content[i1][1:].strip()), len(content[i2][1:].strip())
+            )
+            max_len_stripped = max(
+                len(content[i1][1:].strip()), len(content[i2][1:].strip())
+            )
 
             while (
                 insertion_begin_index < min_len
