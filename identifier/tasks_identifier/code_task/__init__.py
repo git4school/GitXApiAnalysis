@@ -22,3 +22,9 @@ from identifier.tasks_identifier.code_task.AnnotationAdditionTask import (
 from identifier.tasks_identifier.code_task.EmptyLineChangeTask import (
     EmptyLineChangeTask,
 )
+from identifier.tasks_identifier.code_task.ForAdditionTask import (
+    ForAdditionTask,
+)
+from identifier.tasks_identifier.code_task.IfAdditionTask import (
+    IfAdditionTask,
+)
