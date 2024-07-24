@@ -6,7 +6,7 @@ import regex
 import utils
 
 
-class IfAdditionTask(CodeTaskIdentifier):
+class IfTask(CodeTaskIdentifier):
 
     def generator_prefix(self) -> str:
         return "if_addition"
@@ -18,12 +18,13 @@ class IfAdditionTask(CodeTaskIdentifier):
         diff: Differential,
         part: DiffPart,
     ) -> list[tuple[list[tuple[int, int]], Callable[[Statement], None]]]:
-        extractions: list[tuple[list[tuple[int, int]], str]] = []
+        extractions: list[tuple[list[tuple[int, int]], str, str]] = []
 
         i = 0
         while i < len(part.content):
             line = part.content[i]
-            if line[0] != "+":
+            symbol = line[0]
+            if not symbol in ["+", "-"]:
                 i += 1
                 continue
             line: str = line[1:].strip().replace("\t", " ")
@@ -42,15 +43,21 @@ class IfAdditionTask(CodeTaskIdentifier):
                 brackets_position = utils.find_delim(
                     part.content, None, parantheses_position[1][0], delim="{"
                 )
-                if brackets_position == None or any(
-                    ";" in l
-                    for l in part.content[
-                        parantheses_position[1][0] : brackets_position[0][0] - 1
-                    ]
+                if (
+                    brackets_position == None
+                    or any(
+                        ";" in l
+                        for l in part.content[
+                            parantheses_position[1][0] : brackets_position[0][0] - 1
+                        ]
+                    )
+                    or part.content[brackets_position[0][0]][0] != symbol
+                    or part.content[brackets_position[1][0]][0] != symbol
                 ):
                     extractions.append(
                         (
                             [(i, parantheses_position[1][0] + 1)],
+                            symbol,
                             line,
                         )
                     )
@@ -61,6 +68,7 @@ class IfAdditionTask(CodeTaskIdentifier):
                                 (i, brackets_position[0][0] + 1),
                                 (brackets_position[1][0], brackets_position[1][0] + 1),
                             ],
+                            symbol,
                             line,
                         )
                     )
@@ -68,16 +76,31 @@ class IfAdditionTask(CodeTaskIdentifier):
                     i = brackets_position[1][0]
                     continue
             elif line.startswith("else") or line.replace(" ", "").startswith("}else"):
+                line = line[line.index("else") + len("else") :]
                 brackets_position = utils.find_delim(part.content, None, i, delim="{")
-                extractions.append(
-                    (
-                        [
-                            (i, brackets_position[0][0] + 1),
-                            (brackets_position[1][0], brackets_position[1][0] + 1),
-                        ],
-                        line,
+                if (
+                    brackets_position == None
+                    or part.content[brackets_position[0][0]][0] != symbol
+                    or part.content[brackets_position[1][0]][0] != symbol
+                ):
+                    extractions.append(
+                        (
+                            [(i, i + 1)],
+                            symbol,
+                            line,
+                        )
                     )
-                )
+                else:
+                    extractions.append(
+                        (
+                            [
+                                (i, brackets_position[0][0] + 1),
+                                (brackets_position[1][0], brackets_position[1][0] + 1),
+                            ],
+                            symbol,
+                            line,
+                        )
+                    )
 
                 i = brackets_position[1][0]
                 continue
@@ -87,8 +110,8 @@ class IfAdditionTask(CodeTaskIdentifier):
                 v[0],
                 (
                     TaskIdentifier.task_applier(
-                        "IfAddition",
-                        {"content": v[1]},
+                        "If" + ("Add" if v[1] == "+" else "Remove"),
+                        {"content": v[2]},
                     )
                 ),
             )

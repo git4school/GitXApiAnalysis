@@ -25,8 +25,8 @@ from identifier.tasks_identifier.code_task.EmptyLineChangeTask import (
 from identifier.tasks_identifier.code_task.ForAdditionTask import (
     ForAdditionTask,
 )
-from identifier.tasks_identifier.code_task.IfAdditionTask import (
-    IfAdditionTask,
+from identifier.tasks_identifier.code_task.IfTask import (
+    IfTask,
 )
 from identifier.tasks_identifier.code_task.ReturnTask import (
     ReturnTask,

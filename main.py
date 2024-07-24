@@ -91,7 +91,7 @@ if __name__ == "__main__":
         AnnotationAdditionTask(),
         EmptyLineChangeTask(),
         ForAdditionTask(),
-        IfAdditionTask(),
+        IfTask(),
         ReturnTask(),
         VariableDeclarationTask(),
         MethodInvocationTask(),
