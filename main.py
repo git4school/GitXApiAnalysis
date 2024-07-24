@@ -90,7 +90,7 @@ if __name__ == "__main__":
         FunctionAdditionTask(),
         AnnotationAdditionTask(),
         EmptyLineChangeTask(),
-        ForAdditionTask(),
+        ForTask(),
         IfTask(),
         ReturnTask(),
         VariableDeclarationTask(),

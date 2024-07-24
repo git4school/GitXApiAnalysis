@@ -6,7 +6,7 @@ import regex
 import utils
 
 
-class ForAdditionTask(CodeTaskIdentifier):
+class ForTask(CodeTaskIdentifier):
 
     def generator_prefix(self) -> str:
         return "for_addition"
@@ -18,12 +18,13 @@ class ForAdditionTask(CodeTaskIdentifier):
         diff: Differential,
         part: DiffPart,
     ) -> list[tuple[list[tuple[int, int]], Callable[[Statement], None]]]:
-        extractions: list[tuple[list[tuple[int, int]], str]] = []
+        extractions: list[tuple[list[tuple[int, int]], str, str]] = []
 
         i = 0
         while i < len(part.content):
             line = part.content[i]
-            if line[0] != "+":
+            symbol = line[0]
+            if not symbol in ["+", "-"]:
                 i += 1
                 continue
             line: str = line[1:].strip().replace("\t", " ")
@@ -38,7 +39,11 @@ class ForAdditionTask(CodeTaskIdentifier):
                 brackets_position = utils.find_delim(
                     part.content, None, parantheses_position[1][0], delim="{"
                 )
-                if brackets_position == None:
+                if (
+                    brackets_position == None
+                    or part.content[brackets_position[0][0]][0] != symbol
+                    or part.content[brackets_position[1][0]][0] != symbol
+                ):
                     i += 1
                     continue
                 extractions.append(
@@ -47,6 +52,7 @@ class ForAdditionTask(CodeTaskIdentifier):
                             (i, brackets_position[0][0] + 1),
                             (brackets_position[1][0], brackets_position[1][0] + 1),
                         ],
+                        symbol,
                         line,
                     )
                 )
@@ -56,8 +62,8 @@ class ForAdditionTask(CodeTaskIdentifier):
                 v[0],
                 (
                     TaskIdentifier.task_applier(
-                        "ForAddition",
-                        {"content": v[1]},
+                        "For" + ("Add" if v[1] == "+" else "Remove"),
+                        {"content": v[2]},
                     )
                 ),
             )
