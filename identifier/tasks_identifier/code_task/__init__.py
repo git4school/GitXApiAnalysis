@@ -34,3 +34,6 @@ from identifier.tasks_identifier.code_task.ReturnTask import (
 from identifier.tasks_identifier.code_task.VariableDeclarationTask import (
     VariableDeclarationTask,
 )
+from identifier.tasks_identifier.code_task.MethodInvocationTask import (
+    MethodInvocationTask,
+)
