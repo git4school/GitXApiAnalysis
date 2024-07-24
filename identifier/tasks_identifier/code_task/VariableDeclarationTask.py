@@ -27,13 +27,13 @@ class VariableDeclarationTask(CodeTaskIdentifier):
                     continue
 
                 equal_i = content.index("=")
-                if equal_i + 1 == len(content) or equal_i == 0:
+                if (
+                    equal_i + 1 != len(content) and content[equal_i + 1] == "="
+                ) or equal_i == 0:
                     continue
                 if ("//" in content and content.index("//") < equal_i) or (
                     "/*" in content and content.index("/*") < equal_i
                 ):
-                    continue
-                if content[equal_i + 1] == "=":
                     continue
 
                 parts = content.split("=", maxsplit=2)

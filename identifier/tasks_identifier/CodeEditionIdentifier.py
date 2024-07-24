@@ -150,11 +150,9 @@ def indentify_edition(prefix, before, after, suffix, tags):
             return "RENAME_VARIABLE"
 
     prefix_equal = -1 if not "=" in prefix else prefix.index("=")
-
     if prefix_equal != -1 and (
         prefix_equal != 0
-        and prefix_equal + 1 != len(prefix)
-        and prefix[prefix_equal + 1] != "="
+        and (prefix_equal + 1 == len(prefix) or prefix[prefix_equal + 1] != "=")
     ):
         return "CHANGE_VARIABLE_VALUE"
 
