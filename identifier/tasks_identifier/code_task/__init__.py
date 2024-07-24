@@ -37,3 +37,6 @@ from identifier.tasks_identifier.code_task.VariableDeclarationTask import (
 from identifier.tasks_identifier.code_task.MethodInvocationTask import (
     MethodInvocationTask,
 )
+from identifier.tasks_identifier.code_task.BlockTask import (
+    BlockTask,
+)
