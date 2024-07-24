@@ -88,7 +88,7 @@ if __name__ == "__main__":
         ImportTask(),
         ClassTask(),
         FunctionTask(),
-        AnnotationAdditionTask(),
+        AnnotationTask(),
         EmptyLineChangeTask(),
         ForTask(),
         IfTask(),

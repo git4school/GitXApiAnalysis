@@ -16,8 +16,8 @@ from identifier.tasks_identifier.code_task.ClassTask import (
 from identifier.tasks_identifier.code_task.FunctionTask import (
     FunctionTask,
 )
-from identifier.tasks_identifier.code_task.AnnotationAdditionTask import (
-    AnnotationAdditionTask,
+from identifier.tasks_identifier.code_task.AnnotationTask import (
+    AnnotationTask,
 )
 from identifier.tasks_identifier.code_task.EmptyLineChangeTask import (
     EmptyLineChangeTask,

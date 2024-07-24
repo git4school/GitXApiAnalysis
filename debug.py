@@ -7,7 +7,8 @@ CLASS_MASK = set(
     [
         "ADD_RETURN_VALUE",
         "ADD_VARIABLE_VALUE",
-        "AnnotationAddition",
+        "AnnotationAdd",
+        "AnnotationRemove",
         "ASSIGN_VARIABLE",
         "BlockAdd",
         "BlockRemove",
