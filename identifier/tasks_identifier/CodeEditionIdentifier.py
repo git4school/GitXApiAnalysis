@@ -3,6 +3,7 @@ from tincan import Statement
 from gittoxapi.differential import Differential
 from identifier.tasks_identifier.TaskIdentifier import TaskIdentifier
 import regex
+import utils
 
 
 def indentify_edition(prefix, before, after, suffix, tags):
@@ -121,6 +122,29 @@ def indentify_edition(prefix, before, after, suffix, tags):
 
         if not " " in strip_before and not " " in strip_after:
             return "RENAME_VARIABLE"
+
+    prefix_equal = -1 if not "=" in prefix else prefix.index("=")
+
+    if prefix_equal != -1 and (
+        prefix_equal != 0
+        and prefix_equal + 1 != len(prefix)
+        and prefix[prefix_equal + 1] != "="
+    ):
+        return "CHANGE_VARIABLE_VALUE"
+
+    before_line = prefix + before + suffix
+    after_line = prefix + after + suffix
+
+    token_subst = utils.find_token_identifier_substitution(before_line, after_line)
+
+    if token_subst != None:
+
+        if all(
+            not v.startswith(".") for v in before_line.split(token_subst[0])
+        ) and all(not v.startswith(".") for v in after_line.split(token_subst[1])):
+            return "CHANGE_VARIABLE_USED"
+        else:
+            return "CHANGE_METHOD_INVOCATED"
 
 
 class CodeEditionIdentifier(TaskIdentifier):
