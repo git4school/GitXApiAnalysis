@@ -31,3 +31,6 @@ from identifier.tasks_identifier.code_task.IfAdditionTask import (
 from identifier.tasks_identifier.code_task.ReturnTask import (
     ReturnTask,
 )
+from identifier.tasks_identifier.code_task.VariableDeclarationTask import (
+    VariableDeclarationTask,
+)
