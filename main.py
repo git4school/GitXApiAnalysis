@@ -86,7 +86,7 @@ if __name__ == "__main__":
         CodeEditionIdentifier(),
         PackageTask(),
         ImportTask(),
-        ClassAdditionTask(),
+        ClassTask(),
         FunctionTask(),
         AnnotationAdditionTask(),
         EmptyLineChangeTask(),
