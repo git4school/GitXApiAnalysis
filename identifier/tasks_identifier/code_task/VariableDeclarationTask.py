@@ -16,7 +16,7 @@ class VariableDeclarationTask(CodeTaskIdentifier):
         diff: Differential,
         part: DiffPart,
     ) -> list[tuple[list[tuple[int, int]], Callable[[Statement], None]]]:
-        extractions: list[tuple[int, str, dict]] = []
+        extractions: list[tuple[int, str, str, dict]] = []
         for i in range(len(part.content)):
             line = part.content[i]
             if line[0] in ["+", "-"]:
@@ -29,15 +29,22 @@ class VariableDeclarationTask(CodeTaskIdentifier):
                 equal_i = content.index("=")
                 if equal_i + 1 == len(content) or equal_i == 0:
                     continue
+                if ("//" in content and content.index("//") < equal_i) or (
+                    "/*" in content and content.index("/*") < equal_i
+                ):
+                    continue
                 if content[equal_i + 1] == "=":
                     continue
 
                 parts = content.split("=", maxsplit=2)
+                if "(" in parts[0]:
+                    continue
 
                 extractions.append(
                     (
                         i,
                         line[0],
+                        "Declaration" if " " in parts[0].strip() else "VariableAssign",
                         {"declaration": parts[0].strip(), "value": parts[1].strip()},
                     )
                 )
@@ -46,9 +53,8 @@ class VariableDeclarationTask(CodeTaskIdentifier):
                 [(v[0], v[0] + 1)],
                 (
                     TaskIdentifier.task_applier(
-                        "DeclarationStatement"
-                        + ("Add" if v[1][0] == "+" else "Remove"),
-                        v[2],
+                        v[2] + "Statement" + ("Add" if v[1][0] == "+" else "Remove"),
+                        v[3],
                     )
                 ),
             )

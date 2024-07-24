@@ -19,9 +19,6 @@ def indentify_edition(prefix, before, after, suffix, tags):
     def is_added(raw: str):
         return raw in after and not raw in before
 
-    if "STRING" in tags:
-        return "STRING_EDITION"
-
     if "COMMENT" in tags:
         if is_added("//"):
             return "COMMENT_ADDITION"
@@ -33,6 +30,35 @@ def indentify_edition(prefix, before, after, suffix, tags):
             return "COMMENT_MOVED"
         else:
             return "COMMENT_EDITION"
+
+    before_line = prefix + before + suffix
+    after_line = prefix + after + suffix
+
+    token_subst = utils.find_token_identifier_substitution(before_line, after_line)
+
+    if token_subst != None:
+
+        before_split_subst = before_line.split(token_subst[0])
+        before_split_subst = [
+            v.replace("\t", " ").replace(" ", "") for v in before_split_subst
+        ]
+        before_split_subst = [v for v in before_split_subst if len(v) > 0]
+
+        if all(not v[0] in ["(", "."] for v in before_split_subst):
+            if (
+                any(v[0] == "=" for v in before_split_subst)
+                and " "
+                in before_line[
+                    : before_line.index(token_subst[0]) + len(token_subst[0])
+                ].strip()
+            ):
+                return "RENAME_VARIABLE"
+            return "CHANGE_VARIABLE_USED"
+        else:
+            return "CHANGE_METHOD_INVOCATED"
+
+    if "STRING" in tags:
+        return "STRING_EDITION"
 
     if "INSERT" in tags:
         if strip_prefix.endswith("return") and (
@@ -131,20 +157,6 @@ def indentify_edition(prefix, before, after, suffix, tags):
         and prefix[prefix_equal + 1] != "="
     ):
         return "CHANGE_VARIABLE_VALUE"
-
-    before_line = prefix + before + suffix
-    after_line = prefix + after + suffix
-
-    token_subst = utils.find_token_identifier_substitution(before_line, after_line)
-
-    if token_subst != None:
-
-        if all(
-            not v.startswith(".") for v in before_line.split(token_subst[0])
-        ) and all(not v.startswith(".") for v in after_line.split(token_subst[1])):
-            return "CHANGE_VARIABLE_USED"
-        else:
-            return "CHANGE_METHOD_INVOCATED"
 
 
 class CodeEditionIdentifier(TaskIdentifier):

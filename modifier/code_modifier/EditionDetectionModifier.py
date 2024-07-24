@@ -106,7 +106,6 @@ class EditionDetectionModifier(CodeModifier):
                 min_len_stripped >= 4 or max_len_stripped >= 4
             ):
                 continue
-
             splitting_parts.append(
                 (
                     i1,
@@ -121,12 +120,14 @@ class EditionDetectionModifier(CodeModifier):
                 )
             )
 
-        def edition_applier(statement: Statement, v: dict):
-            statement.context.extensions["editions"] = v
+        def edition_applier(v: dict):
+            def lambda_applier(statement):
+                statement.context.extensions["editions"] = v
+
+            return lambda_applier
 
         return [
-            ([(i1, i2)], lambda statement: edition_applier(statement, v))
-            for (i1, i2, v) in splitting_parts
+            ([(i1, i2)], edition_applier(dict(v))) for (i1, i2, v) in splitting_parts
         ]
 
     def process_statement(

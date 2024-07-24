@@ -50,7 +50,7 @@ class BlockTask(CodeTaskIdentifier):
                         (i, i + 1),
                         (brackets_position[1][0], brackets_position[1][0] + 1),
                     ],
-                    line[0],
+                    end_line[0],
                 )
             )
 

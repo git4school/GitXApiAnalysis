@@ -34,7 +34,11 @@ class MethodInvocationTask(CodeTaskIdentifier):
                 if " " in content[:par_i].strip():
                     continue
 
-                extractions.append((i, line[0], {"method": content[:par_i].strip()}))
+                name = content[:par_i].strip()
+                if name in ["for", "if", "while", "do", "switch"]:
+                    continue
+
+                extractions.append((i, line[0], {"method": name}))
 
         return [
             (
