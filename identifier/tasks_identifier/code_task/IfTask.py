@@ -72,9 +72,6 @@ class IfTask(CodeTaskIdentifier):
                             line,
                         )
                     )
-
-                    i = brackets_position[1][0]
-                    continue
             elif line.startswith("else") or line.replace(" ", "").startswith("}else"):
                 line = line[line.index("else") + len("else") :]
                 brackets_position = utils.find_delim(part.content, None, i, delim="{")
@@ -101,9 +98,6 @@ class IfTask(CodeTaskIdentifier):
                             line,
                         )
                     )
-
-                i = brackets_position[1][0]
-                continue
             i += 1
         return [
             (
