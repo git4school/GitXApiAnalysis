@@ -87,7 +87,7 @@ if __name__ == "__main__":
         PackageTask(),
         ImportTask(),
         ClassAdditionTask(),
-        FunctionAdditionTask(),
+        FunctionTask(),
         AnnotationAdditionTask(),
         EmptyLineChangeTask(),
         ForTask(),

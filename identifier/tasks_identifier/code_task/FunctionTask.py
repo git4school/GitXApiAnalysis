@@ -6,7 +6,7 @@ import regex
 import utils
 
 
-class FunctionAdditionTask(CodeTaskIdentifier):
+class FunctionTask(CodeTaskIdentifier):
 
     def generator_prefix(self) -> str:
         return "function_addition"
@@ -18,12 +18,13 @@ class FunctionAdditionTask(CodeTaskIdentifier):
         diff: Differential,
         part: DiffPart,
     ) -> list[tuple[list[tuple[int, int]], Callable[[Statement], None]]]:
-        extractions: list[tuple[list[tuple[int, int]], str]] = []
+        extractions: list[tuple[list[tuple[int, int]], str, str]] = []
 
         i = 0
         while i < len(part.content):
             line = part.content[i]
-            if line[0] != "+":
+            symbol = line[0]
+            if not symbol in ["+", "-"]:
                 i += 1
                 continue
             line: str = line[1:].strip().replace("\t", " ")
@@ -41,15 +42,28 @@ class FunctionAdditionTask(CodeTaskIdentifier):
                 first = -1
                 last = -1
                 opened = 0
-                brackets = utils.find_delim(part.content, None, i, delim="{")
+                brackets_position = utils.find_delim(part.content, None, i, delim="{")
 
-                if brackets != None:
+                if (
+                    brackets_position == None
+                    or part.content[brackets_position[0][0]][0] != symbol
+                    or part.content[brackets_position[1][0]][0] != symbol
+                ):
+                    extractions.append(
+                        (
+                            [(i, i + 1)],
+                            symbol,
+                            line,
+                        )
+                    )
+                else:
                     extractions.append(
                         (
                             [
-                                (i, brackets[0][0] + 1),
-                                (brackets[1][0], brackets[1][0] + 1),
+                                (i, brackets_position[0][0] + 1),
+                                (brackets_position[1][0], brackets_position[1][0] + 1),
                             ],
+                            symbol,
                             line,
                         )
                     )
@@ -59,8 +73,8 @@ class FunctionAdditionTask(CodeTaskIdentifier):
                 v[0],
                 (
                     TaskIdentifier.task_applier(
-                        "FunctionAddition",
-                        {"content": v[1]},
+                        "Function" + ("Add" if v[1] == "+" else "Remove"),
+                        {"content": v[2]},
                     )
                 ),
             )
