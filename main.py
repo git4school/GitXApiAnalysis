@@ -131,6 +131,11 @@ if __name__ == "__main__":
             lambda x: "task" in x.context.extensions
             and x.context.extensions["task"]["id"] == k,
         )
+    dump(
+        "unknown",
+        statements,
+        lambda x: not "task" in x.context.extensions,
+    )
 
     scores = [(k, scores[k]) for k in scores]
     scores.sort(key=lambda v: -v[1])
