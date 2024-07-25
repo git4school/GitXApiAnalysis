@@ -9,6 +9,8 @@ from modifier import *
 import debug
 import shutil
 import os
+import pm4py
+from pm4py.objects.log.obj import EventLog, Trace, Event
 
 
 def format_statement(st: Statement) -> Statement:
@@ -69,11 +71,7 @@ if __name__ == "__main__":
             for v in event.object.definition.extensions["git"]
         ]
 
-    statements = [
-        s
-        for s in statements
-        # if s.object.id == "19a48d25e9b539f41005e969363e93dd00c21435"
-    ]
+    statements = [s for s in statements]
 
     code_modifiers = [
         PreciseVerbModifier(),
@@ -145,3 +143,53 @@ if __name__ == "__main__":
         print(k, v, (str(v * 100 / len(statements)) + "    ")[:4], "%")
         for (k, v) in scores
     ]
+
+    if debug.GENERATE_XES_FROM_INITIAL:
+        keys = [st.object.id for st in initial_statements]
+
+        event_log = EventLog()
+        trace = Trace()
+
+        for key in keys:
+            event = Event()
+            classes = set()
+            for st in statements:
+                task = TaskIdentifier.get_task(st)
+                if task == None or not "origins" in st.context.extensions:
+                    continue
+                if not key in st.context.extensions["origins"]:
+                    continue
+                classes.add(task[0])
+            if len(classes) == 0:
+                classes.add("UNKNOWN")
+            classes = list(classes)
+            classes.sort()
+            event["concept:name"] = "/".join(classes)
+            event["org:resource"] = st.object.definition.description["en-US"]
+            event["time:timestamp"] = st.timestamp
+            trace.append(event)
+
+        event_log.append(trace)
+
+        pm4py.write_xes(event_log, "out/initial.xes")
+
+    if debug.GENERATE_XES_FROM_CREATED:
+
+        event_log = EventLog()
+        trace = Trace()
+
+        for st in statements:
+            event = Event()
+
+            clazz = "UNKNOWN"
+            task = TaskIdentifier.get_task(st)
+            if task != None:
+                clazz = task[0]
+
+            event["concept:name"] = clazz
+            event["time:timestamp"] = st.timestamp
+            trace.append(event)
+
+        event_log.append(trace)
+
+        pm4py.write_xes(event_log, "out/artificial.xes")
