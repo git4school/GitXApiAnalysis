@@ -40,3 +40,6 @@ from identifier.tasks_identifier.code_task.MethodInvocationTask import (
 from identifier.tasks_identifier.code_task.BlockTask import (
     BlockTask,
 )
+from identifier.tasks_identifier.code_task.SyntaxTypo import (
+    SyntaxTypo,
+)

@@ -72,7 +72,7 @@ if __name__ == "__main__":
     statements = [
         s
         for s in statements
-        # if s.object.id == "fea14b2d27ee9b8bd2d99e39fcf4445c1cd3f8c2"
+        # if s.object.id == "19a48d25e9b539f41005e969363e93dd00c21435"
     ]
 
     code_modifiers = [
@@ -96,6 +96,7 @@ if __name__ == "__main__":
         VariableDeclarationTask(),
         MethodInvocationTask(),
         BlockTask(),
+        SyntaxTypo(),
     ]
 
     code_modifiers += [

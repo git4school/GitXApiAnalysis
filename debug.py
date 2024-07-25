@@ -31,6 +31,8 @@ CLASS_MASK = set(
         "ForRemove",
         "IfAdd",
         "IfRemove",
+        "SyntaxTypoAdd",
+        "SyntaxTypoRemove",
         "FunctionAdd",
         "FunctionRemove",
         "ImportStatementAdd",
