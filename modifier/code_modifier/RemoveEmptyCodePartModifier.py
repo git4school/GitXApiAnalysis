@@ -13,7 +13,7 @@ class RemoveEmptyCodePartModifier(CodeModifier):
             diff.parts = [
                 p
                 for p in diff.parts
-                if (p.content == None or any(l[0] != " " for l in p.content))
+                if (p.content == None or any(l[0] in ["+", "-"] for l in p.content))
             ]
 
         return []
