@@ -39,44 +39,88 @@ def find_delim(lines: list[str], begin_col: int = None, begin_row: int = 0, deli
 
 def tokenize(s: str) -> list[str]:
     tokens = list(javalang.tokenizer.tokenize(s, ignore_errors=True))
-    return [(v.value, v.position, type(v).__name__) for v in tokens]
+    return [(v.value, v.position, type(v).__name__, type(v)) for v in tokens]
 
 
-def find_token_identifier_substitution(s1: str, s2: str):
-
+def find_token_substitution(s1: str, s2: str):
     IDENTIFIER_NAME = javalang.tokenizer.Identifier.__name__
+    LITTERAL = []
 
     s1_tokens = tokenize(s1)
     s2_tokens = tokenize(s2)
 
+    LITTERAL += [
+        v[2] for v in s1_tokens if issubclass(v[3], javalang.tokenizer.Literal)
+    ]
+
+    LITTERAL += [
+        v[2] for v in s2_tokens if issubclass(v[3], javalang.tokenizer.Literal)
+    ]
+
+    LITTERAL = set(LITTERAL)
+
     if len(s1_tokens) != len(s2_tokens):
         return
 
-    if not all(s1_tokens[i][2] == s2_tokens[i][2] for i in range(len(s1_tokens))):
+    if not all(
+        (s1_tokens[i][2] == s2_tokens[i][2])
+        or (s1_tokens[i][2] == IDENTIFIER_NAME or s1_tokens[i][2] in LITTERAL)
+        or (s2_tokens[i][2] == IDENTIFIER_NAME or s2_tokens[i][2] in LITTERAL)
+        for i in range(len(s1_tokens))
+    ):
         return
 
-    def is_equal(subst_origin: str, subs_dest: str):
+    def is_equal(subst_origin, subs_dest):
+        identifier_subst = subst_origin[2] == subs_dest[2] == IDENTIFIER_NAME
+
         for i in range(len(s1_tokens)):
-            if s1_tokens[i][2] != IDENTIFIER_NAME:
-                if s1_tokens[i][0] != s2_tokens[i][0]:
+            if s1_tokens[i][2] == s2_tokens[i][2] == IDENTIFIER_NAME:
+                if identifier_subst:
+                    if not (
+                        (
+                            s1_tokens[i][0] == subst_origin[0]
+                            and s2_tokens[i][0] == subs_dest[0]
+                        )
+                        or (s1_tokens[i][0] == s2_tokens[i][0])
+                    ):
+                        return False
+                elif s1_tokens[i][0] != s2_tokens[i][0]:
                     return False
-            else:
+
+            elif s1_tokens[i][2] == IDENTIFIER_NAME:
                 if not (
-                    (s1_tokens[i][0] == subst_origin and s2_tokens[i][0] == subs_dest)
-                    or (s1_tokens[i][0] == s2_tokens[i][0])
+                    subst_origin[2] == IDENTIFIER_NAME
+                    and subst_origin[0] == s1_tokens[i][0]
+                    and s2_tokens[i][0] == subs_dest[0]
+                ):
+                    return False
+            elif s2_tokens[i][2] == IDENTIFIER_NAME:
+                if not (
+                    subs_dest[2] == IDENTIFIER_NAME
+                    and subs_dest[0] == s2_tokens[i][0]
+                    and s1_tokens[i][0] == subst_origin[0]
                 ):
                     return False
         return True
 
     # filter identifiers
-    s1_identifiers = [v for v in s1_tokens if v[2] == IDENTIFIER_NAME]
-    s2_identifiers = [v for v in s2_tokens if v[2] == IDENTIFIER_NAME]
+    s1_substituable = [
+        v for v in s1_tokens if v[2] == IDENTIFIER_NAME or v[2] in LITTERAL
+    ]
+    s2_substituable = [
+        v for v in s2_tokens if v[2] == IDENTIFIER_NAME or v[2] in LITTERAL
+    ]
 
-    if len(s1_identifiers) != len(s2_identifiers):
+    if len(s1_substituable) != len(s2_substituable):
         return
 
-    for i in range(len(s1_identifiers)):
-        if is_equal(s1_identifiers[i][0], s2_identifiers[i][0]):
-            return (s1_identifiers[i][0], s2_identifiers[i][0])
+    for i in range(len(s1_substituable)):
+        if is_equal(s1_substituable[i], s2_substituable[i]):
+            s1_value, s1_pos, s1_type_name, s1_type = s1_substituable[i]
+            s2_value, s2_pos, s2_type_name, s2_type = s2_substituable[i]
+            return (
+                (s1_value, s1_type, s1_type_name in LITTERAL),
+                (s2_value, s2_type, s2_type_name in LITTERAL),
+            )
 
     return

@@ -34,28 +34,37 @@ def indentify_edition(prefix, before, after, suffix, tags):
     before_line = prefix + before + suffix
     after_line = prefix + after + suffix
 
-    token_subst = utils.find_token_identifier_substitution(before_line, after_line)
+    token_subst = utils.find_token_substitution(before_line, after_line)
 
     if token_subst != None:
+        if (not token_subst[0][-1]) and (not token_subst[1][-1]):
+            token_subst = [token_subst[0][0], token_subst[1][0]]
+            before_split_subst = before_line.split(token_subst[0])
+            before_split_subst = [
+                v.replace("\t", " ").replace(" ", "") for v in before_split_subst
+            ]
+            before_split_subst = [v for v in before_split_subst if len(v) > 0]
 
-        before_split_subst = before_line.split(token_subst[0])
-        before_split_subst = [
-            v.replace("\t", " ").replace(" ", "") for v in before_split_subst
-        ]
-        before_split_subst = [v for v in before_split_subst if len(v) > 0]
+            if all(not v[0] in ["(", "."] for v in before_split_subst):
+                if (
+                    any(v[0] == "=" for v in before_split_subst)
+                    and " "
+                    in before_line[
+                        : before_line.index(token_subst[0]) + len(token_subst[0])
+                    ].strip()
+                ):
+                    return "RENAME_VARIABLE"
+                return "CHANGE_VARIABLE_USED"
+            else:
+                return "CHANGE_METHOD_INVOCATED"
 
-        if all(not v[0] in ["(", "."] for v in before_split_subst):
-            if (
-                any(v[0] == "=" for v in before_split_subst)
-                and " "
-                in before_line[
-                    : before_line.index(token_subst[0]) + len(token_subst[0])
-                ].strip()
-            ):
-                return "RENAME_VARIABLE"
-            return "CHANGE_VARIABLE_USED"
+        elif token_subst[0][-1] and token_subst[1][-1]:
+            return "CHANGE_LITTERAL_VALUE"
         else:
-            return "CHANGE_METHOD_INVOCATED"
+            if token_subst[0][-1]:
+                return "LITTERAL_TO_VARIABLE"
+            else:
+                return "VARIABLE_TO_LITTERAL"
 
     if "STRING" in tags:
         return "STRING_EDITION"
