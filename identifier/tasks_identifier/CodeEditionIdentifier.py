@@ -166,6 +166,9 @@ def indentify_edition(prefix, before, after, suffix, tags):
             return "REMOVE_FUNCTION_PARAMETER"
         return "EDIT_FUNCTION_PARAMETERS"
 
+    if strip_prefix.startswith("return"):
+        return "EDIT_RETURN_VALUE"
+
 
 class CodeEditionIdentifier(TaskIdentifier):
 
