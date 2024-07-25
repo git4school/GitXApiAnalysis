@@ -155,6 +155,16 @@ def indentify_edition(prefix, before, after, suffix, tags):
         and (prefix_equal + 1 == len(prefix) or prefix[prefix_equal + 1] != "=")
     ):
         return "CHANGE_VARIABLE_VALUE"
+    if (
+        (len(strip_prefix) > 0 and len(strip_suffix) > 0)
+        and strip_prefix[-1] in "(,"
+        and strip_suffix[0] in ",)"
+    ):
+        if "INSERT" in tags or is_added(","):
+            return "ADD_FUNCTION_PARAMETER"
+        elif "DELETE" in tags or is_removed(","):
+            return "REMOVE_FUNCTION_PARAMETER"
+        return "EDIT_FUNCTION_PARAMETERS"
 
 
 class CodeEditionIdentifier(TaskIdentifier):
