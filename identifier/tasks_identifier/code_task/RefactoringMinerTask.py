@@ -8,8 +8,8 @@ import debug
 
 class RefactoringMinerTask(CodeTaskIdentifier):
 
-    def __init__(self) -> None:
-        with open("refactoring.json") as f:
+    def __init__(self, file) -> None:
+        with open(file) as f:
             self.json = dict(
                 [
                     (c["sha1"], c["refactorings"])

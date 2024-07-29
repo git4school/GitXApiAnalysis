@@ -1,4 +1,5 @@
 import json
+import GitToXApi.utils
 from tincan import Statement
 import GitToXApi.differential
 from GitToXApi.utils import *
@@ -9,8 +10,9 @@ from modifier import *
 import debug
 import shutil
 import os
-import pm4py
-from pm4py.objects.log.obj import EventLog, Trace, Event
+from xes_file import *
+import argparse
+import subprocess
 
 
 def format_statement(st: Statement) -> Statement:
@@ -45,9 +47,12 @@ def exec_modifier(statements: list[Statement], identifier: CodeModifier):
 
 
 def dump(
-    name: str, statements: list[Statement], filter: Callable[[Statement], bool]
+    name: str,
+    out: str,
+    statements: list[Statement],
+    filter: Callable[[Statement], bool],
 ) -> None:
-    with open("out/" + name + ".json", "w") as f:
+    with open(out + name + ".json", "w") as f:
         f.write(
             json.dumps(
                 [stmt.as_version() for stmt in statements if filter(stmt)],
@@ -56,18 +61,44 @@ def dump(
         )
 
 
-if __name__ == "__main__":
+def generate_files(repo: Repo, out_folder, repo_name: str):
+    repo_path = repo.git_dir[: repo.git_dir.rindex("/")]
+    print("Getting files for", repo_path)
+    stmts = GitToXApi.utils.generate_xapi(repo, {})
+
+    dest_xapi = out_folder + repo_name + ".json"
+    if not os.path.exists(dest_xapi):
+        print("Generation of xapi files for", repo_path)
+        with open(dest_xapi, "w") as f:
+            f.write(GitToXApi.utils.serialize_statements(stmts, indent=2))
+
+    dest_refactoring = out_folder + repo_name + "_refactoring.json"
+    if not os.path.exists(dest_refactoring):
+        print("Generation of refactoring files for", repo_path)
+        subprocess.run(
+            "RefactoringMiner -a " + repo_path + " -json " + dest_refactoring,
+            shell=True,
+            capture_output=True,
+        )
+
+    print("Files where collected for", repo_path)
+
+
+def process_file(path: str, out: str):
+
+    refactoring_file = path[: path.rfind(".")] + "_refactoring.json"
 
     initial_statements = None
-    with open("original.json") as f:
+    with open(path) as f:
         initial_statements = deserialize_statements(f)
+    initial_statements = [format_statement(s) for s in initial_statements]
     initial_total = len(initial_statements)
     statements = copy.deepcopy(initial_statements)
 
     code_modifiers = [
         PreciseVerbModifier(),
         NotSourceTask(),
-        RefactoringMinerTask(),
+        RefactoringMinerTask(refactoring_file),
         TrimEditionContentModifier(),
         LineBreakAndSpacingChangeTask(),
         CutPasteTask(),
@@ -97,9 +128,6 @@ if __name__ == "__main__":
     for modif in code_modifiers:
         statements = exec_modifier(statements, modif)
 
-    shutil.rmtree("out", ignore_errors=True)
-    os.mkdir("./out")
-
     scores = {"UNKNOWN": 0}
 
     for st in statements:
@@ -117,15 +145,19 @@ if __name__ == "__main__":
         safe_name: str = k.lower().replace(" ", "_")
         dump(
             safe_name,
+            out,
             statements,
             lambda x: "task" in x.context.extensions
             and x.context.extensions["task"]["id"] == k,
         )
     dump(
         "unknown",
+        out,
         statements,
         lambda x: not "task" in x.context.extensions,
     )
+
+    dump(path[: path.rfind(".")] + "_processed.json", out, statements, lambda x: True)
 
     scores = [(k, scores[k]) for k in scores]
     scores.sort(key=lambda v: -v[1])
@@ -136,54 +168,45 @@ if __name__ == "__main__":
     ]
 
     if debug.GENERATE_XES_FROM_INITIAL:
-        keys = [st.object.id for st in initial_statements]
-
-        event_log = EventLog()
-        trace = Trace()
-
-        for key in keys:
-            event = Event()
-            classes = set()
-            for st in statements:
-                task = TaskIdentifier.get_task(st)
-                if task == None or not "origins" in st.context.extensions:
-                    continue
-                if not key in st.context.extensions["origins"]:
-                    continue
-                classes.add(task[0])
-            if len(classes) == 0:
-                classes.add("UNKNOWN")
-            classes = list(classes)
-            classes.sort()
-            event["concept:name"] = "/".join(classes)
-            event["org:resource"] = st.object.definition.description["en-US"]
-            event["time:timestamp"] = st.timestamp
-            trace.append(event)
-
-        event_log.append(trace)
-
-        pm4py.write_xes(event_log, "out/initial.xes")
+        generate_xes_from_initial(
+            initial_statements, statements, out=out + "initial.xes"
+        )
 
     if debug.GENERATE_XES_FROM_CREATED:
+        generate_xes_from_created(statements, out=out + "created.xes")
 
-        event_log = EventLog()
-        trace = Trace()
 
-        for st in statements:
-            event = Event()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        prog="GitXApiAnalysis",
+        description="Program used to analyze git xapi files",
+    )
 
-            clazz = "UNKNOWN"
-            task = TaskIdentifier.get_task(st)
-            if task != None:
-                clazz = task[0]
+    parser.add_argument("filename")
+    parser.add_argument(
+        "--generate", "-g", action=argparse.BooleanOptionalAction, default=False
+    )
+    parser.add_argument("-o", "--out", default="")
 
-            if clazz == "EmptyCommit":
-                continue
+    args = parser.parse_args()
 
-            event["concept:name"] = clazz
-            event["time:timestamp"] = st.timestamp
-            trace.append(event)
+    filename = args.filename
+    generate = args.generate
+    out_folder = args.out
 
-        event_log.append(trace)
+    if out_folder != "" and out_folder[-1] != "/":
+        out_folder += "/"
+    if filename[-1] == "/":
+        filename = filename[:-1]
 
-        pm4py.write_xes(event_log, "out/artificial.xes")
+    if out_folder != "" and not os.path.exists(out_folder):
+        os.makedirs(out_folder)
+
+    if not os.path.exists(filename):
+        raise FileNotFoundError(filename)
+
+    if generate:
+        repo = Repo(filename)
+        generate_files(repo, out_folder, filename)
+    else:
+        process_file(filename, out_folder)
