@@ -1,6 +1,7 @@
 import json
 from tincan import Statement
 import GitToXApi.differential
+from GitToXApi.utils import *
 from tincan import Context
 import copy
 from identifier import *
@@ -57,20 +58,11 @@ def dump(
 
 if __name__ == "__main__":
 
-    raw = None
+    initial_statements = None
     with open("original.json") as f:
-        raw = json.load(f)
-    initial_total = len(raw)
-    initial_statements = [format_statement(Statement(e)) for e in raw]
+        initial_statements = deserialize_statements(f)
+    initial_total = len(initial_statements)
     statements = copy.deepcopy(initial_statements)
-
-    for event in statements:
-        event.object.definition.extensions["git"] = [
-            GitToXApi.differential.Differential(v)
-            for v in event.object.definition.extensions["git"]
-        ]
-
-    statements = [s for s in statements]
 
     code_modifiers = [
         PreciseVerbModifier(),
