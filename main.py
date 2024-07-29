@@ -86,6 +86,7 @@ def generate_files(repo: Repo, out_folder, repo_name: str):
 
 def process_file(path: str, out: str):
 
+    repo_name = path[path.rfind("/") + 1 : path.rfind(".")]
     refactoring_file = path[: path.rfind(".")] + "_refactoring.json"
 
     initial_statements = None
@@ -157,7 +158,7 @@ def process_file(path: str, out: str):
         lambda x: not "task" in x.context.extensions,
     )
 
-    dump(path[: path.rfind(".")] + "_processed.json", out, statements, lambda x: True)
+    dump(repo_name + "_processed", out, statements, lambda x: True)
 
     scores = [(k, scores[k]) for k in scores]
     scores.sort(key=lambda v: -v[1])
