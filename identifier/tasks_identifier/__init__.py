@@ -1,0 +1,7 @@
+from identifier.tasks_identifier.code_task import *
+
+from identifier.tasks_identifier.TaskIdentifier import TaskIdentifier
+from identifier.tasks_identifier.NotSourceTask import NotSourceTask
+from identifier.tasks_identifier.CodeEditionIdentifier import CodeEditionIdentifier
+from identifier.tasks_identifier.EmptyGitTaskIdentifier import EmptyGitTaskIdentifier
+from identifier.tasks_identifier.CutPasteTask import CutPasteTask

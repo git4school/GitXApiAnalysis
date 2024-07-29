@@ -1,292 +1,212 @@
-from git import Repo
 import json
+import GitToXApi.utils
 from tincan import Statement
-import gittoxapi.differential
-import gittoxapi.gitXApi
-import os
-
-import matplotlib.pyplot as plt
-import debug
-import pm4py
+import GitToXApi.differential
+from GitToXApi.utils import *
+from tincan import Context
 import copy
-from pm4py.objects.log.obj import EventLog, Trace, Event
+from identifier import *
+from modifier import *
+import debug
+import shutil
+import os
+from xes_file import *
+import argparse
+import subprocess
 
-from post_process import (
-    AddTagToEdition,
-    PostProcessModifier,
-    FillXApiMissingField,
-    PreciseVerb,
-    SplitMultipleFile,
-    TurnDiffToEdition,
-    AttachRefactor,
-    TrimAtomic,
-    IsolateCutPaste,
-    RemoveNewLineAtEndOfFile,
-    LineFuser,
-    SplitImport,
-    TrimContentPrefixAndSuffix,
-)
-from classification import (
-    ClassificationProcess,
-    RefactoringClassification,
-    NaiveSystemEventClassification,
-    EditionClassification,
-    ImportClassification,
-    AddBodyClassification,
-    OneLinerClassification,
-)
 
-if __name__ == "__main__":
+def format_statement(st: Statement) -> Statement:
+    if st.context == None:
+        st.context = Context()
 
-    raw = None
-    with open("original.json") as f:
-        raw = json.load(f)
-    initial_total = len(raw)
-    initial_statements = [Statement(e) for e in raw]
+    if st.context.extensions == None:
+        st.context.extensions = dict()
+
+    return st
+
+
+def exec_modifier(statements: list[Statement], identifier: CodeModifier):
+    st_getter = lambda x: statements[x] if 0 <= x < len(statements) else None
+    processed = {}
+    i = 0
+    while i < len(statements):
+        st: Statement = st_getter(i)
+        if TaskIdentifier.is_task_set(st):
+            i += 1
+            continue
+        last_id = st.object.id
+        if last_id in processed:
+            i += 1
+            continue
+        processed[last_id] = True
+
+        returns = identifier.process_statement(st_getter, i)
+        statements = statements[:i] + returns + statements[i + 1 :]
+
+    return statements
+
+
+def dump(
+    name: str,
+    out: str,
+    statements: list[Statement],
+    filter: Callable[[Statement], bool],
+) -> None:
+    with open(out + name + ".json", "w") as f:
+        f.write(
+            json.dumps(
+                [stmt.as_version() for stmt in statements if filter(stmt)],
+                indent=2,
+            )
+        )
+
+
+def generate_files(repo: Repo, out_folder, repo_name: str):
+    repo_path = repo.git_dir[: repo.git_dir.rindex("/")]
+    print("Getting files for", repo_path)
+    stmts = GitToXApi.utils.generate_xapi(repo, {})
+
+    dest_xapi = out_folder + repo_name + ".json"
+    if not os.path.exists(dest_xapi):
+        print("Generation of xapi files for", repo_path)
+        with open(dest_xapi, "w") as f:
+            f.write(GitToXApi.utils.serialize_statements(stmts, indent=2))
+
+    dest_refactoring = out_folder + repo_name + "_refactoring.json"
+    if not os.path.exists(dest_refactoring):
+        print("Generation of refactoring files for", repo_path)
+        subprocess.run(
+            "RefactoringMiner -a " + repo_path + " -json " + dest_refactoring,
+            shell=True,
+            capture_output=True,
+        )
+
+    print("Files where collected for", repo_path)
+
+
+def process_file(path: str, out: str):
+
+    refactoring_file = path[: path.rfind(".")] + "_refactoring.json"
+
+    initial_statements = None
+    with open(path) as f:
+        initial_statements = deserialize_statements(f)
+    initial_statements = [format_statement(s) for s in initial_statements]
+    initial_total = len(initial_statements)
     statements = copy.deepcopy(initial_statements)
 
-    for event in statements:
-        event.object.definition.extensions["git"] = [
-            gittoxapi.differential.Differential(v)
-            for v in event.object.definition.extensions["git"]
-        ]
-
-    processes: list[PostProcessModifier.PostProcessModifier] = [
-        FillXApiMissingField.FillXApiMissingField(),
-        SplitMultipleFile.SplitMultipleFile(),
-        RemoveNewLineAtEndOfFile.RemoveNewLineAtEndOfFile(),
-        TrimContentPrefixAndSuffix.TrimContentPrefixAndSuffix(),
-        SplitImport.SplitImport(),
-        AttachRefactor.AttachRefactor(),
-        IsolateCutPaste.IsolateCutPaste(),
-        PreciseVerb.PreciseVerb(),
-        LineFuser.LineFuser(),
-        TurnDiffToEdition.TurnDiffToEdition(),
-        AddTagToEdition.AddTagToEdition(),
-        TrimAtomic.TrimAtomic(),
+    code_modifiers = [
+        PreciseVerbModifier(),
+        NotSourceTask(),
+        RefactoringMinerTask(refactoring_file),
+        TrimEditionContentModifier(),
+        LineBreakAndSpacingChangeTask(),
+        CutPasteTask(),
+        EditionDetectionModifier(),
+        CodeEditionIdentifier(),
+        PackageTask(),
+        ImportTask(),
+        ClassTask(),
+        FunctionTask(),
+        AnnotationTask(),
+        EmptyLineChangeTask(),
+        ForTask(),
+        IfTask(),
+        ReturnTask(),
+        VariableDeclarationTask(),
+        MethodInvocationTask(),
+        BlockTask(),
+        SyntaxTypo(),
     ]
 
-    for p in processes:
-        statements = p.process(statements)
-    print("ADDITIONS", len(statements) - initial_total)
-    total = len(statements)
-
-    with open("dump_s.json", "w") as f:
-        f.write(json.dumps([stmt.as_version() for stmt in statements], indent=2))
-
-    classifications: list[ClassificationProcess.Classification] = [
-        NaiveSystemEventClassification.NaiveSystemEventClassification(),
-        RefactoringClassification.RefactoringClassification(),
-        EditionClassification.EditionClassification(),
-        ImportClassification.ImportClassification(),
-        AddBodyClassification.AddBodyClassification(),
-        OneLinerClassification.OneLinerClassification(),
+    code_modifiers += [
+        RemoveEmptyCodePartModifier(),
+        RemoveEmptyDifferentialModifier(),
+        EmptyGitTaskIdentifier(),
     ]
 
-    score = dict([(c.__class__.__name__, 0) for c in classifications])
+    for modif in code_modifiers:
+        statements = exec_modifier(statements, modif)
 
-    for s in statements:
-        for p in classifications:
-            score[p.__class__.__name__] += 1 if p.classify(s) else 0
+    scores = {"UNKNOWN": 0}
 
-    remaining = [
-        stmt.as_version()
-        for stmt in statements
-        if len(stmt.context.extensions["classified"]) == 0
-    ]
+    for st in statements:
+        if TaskIdentifier.is_task_set(st):
+            task = TaskIdentifier.get_task(st)[0]
+            if not task in scores:
+                scores[task] = 0
+            scores[task] += 1
+        else:
+            scores["UNKNOWN"] += 1
 
-    score["remaining"] = len(remaining)
-
-    print(score)
-
-    print(
-        "Initial:",
-        initial_total,
-        ", Total:",
-        total,
-        ", Remaining:",
-        len(remaining),
-        ", Progress:",
-        (str((total - len(remaining)) * 100 / total) + " " * 4)[:4],
-        "%",
+    for k in scores:
+        if k in debug.CLASS_MASK:
+            continue
+        safe_name: str = k.lower().replace(" ", "_")
+        dump(
+            safe_name,
+            out,
+            statements,
+            lambda x: "task" in x.context.extensions
+            and x.context.extensions["task"]["id"] == k,
+        )
+    dump(
+        "unknown",
+        out,
+        statements,
+        lambda x: not "task" in x.context.extensions,
     )
 
-    with open("dump_remaining.json", "w") as f:
-        f.write(
-            json.dumps(
-                remaining,
-                indent=2,
-            )
-        )
+    dump(path[: path.rfind(".")] + "_processed.json", out, statements, lambda x: True)
 
-    with open("dump_classified.json", "w") as f:
-        f.write(
-            json.dumps(
-                [
-                    stmt.as_version()
-                    for stmt in statements
-                    if len(stmt.context.extensions["classified"]) > 0
-                ],
-                indent=2,
-            )
-        )
+    scores = [(k, scores[k]) for k in scores]
+    scores.sort(key=lambda v: -v[1])
 
-    with open("dump_atomic.json", "w") as f:
-        f.write(
-            json.dumps(
-                [
-                    stmt.as_version()
-                    for stmt in statements
-                    if stmt.context.extensions["atomic"]
-                ],
-                indent=2,
-            )
-        )
-
-    with open("dump_atomic_remaining.json", "w") as f:
-        f.write(
-            json.dumps(
-                [
-                    stmt.as_version()
-                    for stmt in statements
-                    if len(stmt.context.extensions["classified"]) == 0
-                    and stmt.context.extensions["atomic"]
-                ],
-                indent=2,
-            )
-        )
-    if debug.SHOW_GRAPH:
-        classified_lines = []
-        unclassified_lines = []
-        classified_git = 0
-        unclassified_git = 0
-
-        for statement in statements:
-            if not "git" in statement.object.definition.extensions:
-                continue
-
-            classified = len(statement.context.extensions["classified"]) > 0
-
-            if classified:
-                classified_git += 1
-            else:
-                unclassified_git += 1
-
-            differentials = statement.object.definition.extensions["git"]
-
-            for diff in differentials:
-                if not diff.file.endswith(".java"):
-                    continue
-                if diff.parts == None:
-                    continue
-                for part in diff.parts:
-                    if part == None or part.content == None:
-                        continue
-                    lines = sum([1 for l in part.content if not l.startswith(" ")])
-                    if lines > 100 and not classified:
-                        print(statement.object.id)
-                    if classified:
-                        classified_lines += [lines]
-                    else:
-                        unclassified_lines += [lines]
-
-        fig, ax = plt.subplots(1, 2)
-
-        sorted_classified_bins = list(set(classified_lines))
-        sorted_classified_bins.sort()
-
-        sorted_unclassified_bins = list(set(unclassified_lines))
-        sorted_unclassified_bins.sort()
-        max_i = max(
-            max([classified_lines.count(v) for v in sorted_classified_bins]),
-            max([unclassified_lines.count(v) for v in sorted_unclassified_bins]),
-        )
-
-        ax[0].hist(classified_lines, sorted_classified_bins)
-        ax[0].set_title("Classified lines")
-        ax[0].set_ylim([0, max_i])
-        ax[1].hist(unclassified_lines, sorted_unclassified_bins)
-        ax[1].set_title("Remaining lines")
-        ax[1].set_ylim([0, max_i])
-        plt.show()
-
-    if debug.GENEREATE_CLASS_FILE:
-        classes = set()
-
-        for statement in statements:
-            classes = classes.union(statement.context.extensions["classified"])
-        for clazz in classes:
-            file_name = "dump_clazz_" + clazz + ".json"
-            if clazz in debug.CLASS_MASK:
-                if os.path.isfile(file_name):
-                    os.remove(file_name)
-            else:
-                with open(file_name, "w") as f:
-                    f.write(
-                        json.dumps(
-                            [
-                                stmt.as_version()
-                                for stmt in statements
-                                if clazz in stmt.context.extensions["classified"]
-                            ],
-                            indent=2,
-                        )
-                    )
+    [
+        print(k, v, (str(v * 100 / len(statements)) + "    ")[:4], "%")
+        for (k, v) in scores
+    ]
 
     if debug.GENERATE_XES_FROM_INITIAL:
-        keys = [st.object.id for st in initial_statements]
-
-        event_log = EventLog()
-        trace = Trace()
-
-        for key in keys:
-            event = Event()
-            classes = set()
-            for st in statements:
-                if not key in st.object.id:
-                    continue
-                classified = st.context.extensions["classified"]
-
-                if len(classified) == 0:
-                    classes.add("UNKNOWN")
-                else:
-                    classes = classes.union(classified)
-            if len(classes) == 0:
-                classes.add("UNKNOWN")
-            classes = list(classes)
-            classes.sort()
-            event["concept:name"] = "/".join(classes)
-            event["org:resource"] = st.object.definition.description["en-US"]
-            event["time:timestamp"] = st.timestamp
-            trace.append(event)
-
-        event_log.append(trace)
-
-        pm4py.write_xes(event_log, "initial.xes")
+        generate_xes_from_initial(
+            initial_statements, statements, out=out + "initial.xes"
+        )
 
     if debug.GENERATE_XES_FROM_CREATED:
+        generate_xes_from_created(statements, out=out + "created.xes")
 
-        event_log = EventLog()
-        trace = Trace()
 
-        for st in statements:
-            event = Event()
-            classified = st.context.extensions["classified"]
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        prog="GitXApiAnalysis",
+        description="Program used to analyze git xapi files",
+    )
 
-            clazz = "UNKNOWN"
-            if "REFACTORING" in classified or "WHITESPACE" in classified:
-                clazz = "REFACTORING"
-            else:
-                if len(classified) > 1:
-                    print(classified)
-                elif len(classified) != 0:
-                    clazz = classified.pop()
+    parser.add_argument("filename")
+    parser.add_argument(
+        "--generate", "-g", action=argparse.BooleanOptionalAction, default=False
+    )
+    parser.add_argument("-o", "--out", default="")
 
-            event["concept:name"] = clazz
-            event["org:resource"] = st.object.definition.description["en-US"]
-            event["time:timestamp"] = st.timestamp
-            trace.append(event)
+    args = parser.parse_args()
 
-        event_log.append(trace)
+    filename = args.filename
+    generate = args.generate
+    out_folder = args.out
 
-        pm4py.write_xes(event_log, "artificial.xes")
+    if out_folder != "" and out_folder[-1] != "/":
+        out_folder += "/"
+    if filename[-1] == "/":
+        filename = filename[:-1]
+
+    if out_folder != "" and not os.path.exists(out_folder):
+        os.makedirs(out_folder)
+
+    if not os.path.exists(filename):
+        raise FileNotFoundError(filename)
+
+    if generate:
+        repo = Repo(filename)
+        generate_files(repo, out_folder, filename)
+    else:
+        process_file(filename, out_folder)
