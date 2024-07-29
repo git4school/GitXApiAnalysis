@@ -1,7 +1,6 @@
 import json
 from tincan import Statement
-import gittoxapi.differential
-import gittoxapi.gitXApi
+import GitToXApi.differential
 from tincan import Context
 import copy
 from identifier import *
@@ -67,7 +66,7 @@ if __name__ == "__main__":
 
     for event in statements:
         event.object.definition.extensions["git"] = [
-            gittoxapi.differential.Differential(v)
+            GitToXApi.differential.Differential(v)
             for v in event.object.definition.extensions["git"]
         ]
 
@@ -185,6 +184,9 @@ if __name__ == "__main__":
             task = TaskIdentifier.get_task(st)
             if task != None:
                 clazz = task[0]
+
+            if clazz == "EmptyCommit":
+                continue
 
             event["concept:name"] = clazz
             event["time:timestamp"] = st.timestamp

@@ -1,6 +1,6 @@
 from typing import Callable
 from tincan import Statement
-from gittoxapi.differential import DiffPart, Differential
+from GitToXApi.differential import DiffPart, Differential
 from identifier.tasks_identifier.code_task.CodeTaskIdentifier import *
 
 

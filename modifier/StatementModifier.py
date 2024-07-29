@@ -1,5 +1,5 @@
 from tincan import Statement, Context, ActivityDefinition, Extensions
-from gittoxapi.differential import Differential, DiffPart
+from GitToXApi.differential import Differential, DiffPart
 from typing import Callable
 from modifier.Modifier import Modifier
 from copy import deepcopy

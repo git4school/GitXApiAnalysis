@@ -1,7 +1,7 @@
 from copy import deepcopy
 from typing import Callable
 from tincan import Statement
-from gittoxapi.differential import DiffPart, Differential
+from GitToXApi.differential import DiffPart, Differential
 from modifier.StatementModifier import StatementModifier
 
 

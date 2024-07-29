@@ -1,7 +1,7 @@
 from typing import Callable
 from tincan import Statement, Verb
 from modifier.StatementModifier import StatementModifier
-from gittoxapi.differential import Differential, DiffPart
+from GitToXApi.differential import Differential, DiffPart
 
 
 class RemoveEmptyDifferentialModifier(StatementModifier):
