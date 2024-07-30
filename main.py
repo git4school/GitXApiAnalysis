@@ -31,7 +31,9 @@ def exec_modifier(statements: list[Statement], identifier: CodeModifier):
     i = 0
     while i < len(statements):
         st: Statement = st_getter(i)
-        if TaskIdentifier.is_task_set(st):
+        if TaskIdentifier.is_task_set(st) and isinstance(
+            identifier, ActivityIdentifier
+        ):
             i += 1
             continue
         last_id = st.object.id
@@ -39,8 +41,11 @@ def exec_modifier(statements: list[Statement], identifier: CodeModifier):
             i += 1
             continue
         processed[last_id] = True
-
-        returns = identifier.process_statement(st_getter, i)
+        try:
+            returns = identifier.process_statement(st_getter, i)
+        except:
+            print("Error occured in", st.object.id)
+            raise Exception
         statements = statements[:i] + returns + statements[i + 1 :]
 
     return statements
@@ -64,10 +69,11 @@ def dump(
 def generate_files(repo: Repo, out_folder, repo_name: str):
     repo_path = repo.git_dir[: repo.git_dir.rindex("/")]
     print("Getting files for", repo_path)
-    stmts = GitToXApi.utils.generate_xapi(repo, {})
 
     dest_xapi = out_folder + repo_name + ".json"
     if not os.path.exists(dest_xapi):
+        stmts = GitToXApi.utils.generate_xapi(repo, {"unified": 1000})
+
         print("Generation of xapi files for", repo_path)
         with open(dest_xapi, "w") as f:
             f.write(GitToXApi.utils.serialize_statements(stmts, indent=2))
@@ -92,7 +98,11 @@ def process_file(path: str, out: str):
     initial_statements = None
     with open(path) as f:
         initial_statements = deserialize_statements(f)
-    initial_statements = [format_statement(s) for s in initial_statements]
+    initial_statements = [
+        format_statement(s)
+        for s in initial_statements
+        # if s.object.id == "75ddeae907d081a29bd074cb6783514ba8bf4e50"
+    ]
     initial_total = len(initial_statements)
     statements = copy.deepcopy(initial_statements)
 
@@ -124,6 +134,7 @@ def process_file(path: str, out: str):
         RemoveEmptyCodePartModifier(),
         RemoveEmptyDifferentialModifier(),
         EmptyGitTaskIdentifier(),
+        NamePathModifier(),
     ]
 
     for modif in code_modifiers:

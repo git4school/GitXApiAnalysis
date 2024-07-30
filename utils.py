@@ -124,3 +124,40 @@ def find_token_substitution(s1: str, s2: str):
             )
 
     return
+
+
+def find_name_path(lines: list[str], row: int):
+
+    brackets = []
+    last = (0, None)
+
+    while last[0] == None or last[0] < row:
+        brackets.append(find_delim(lines, last[1], last[0], delim="{"))
+        if brackets[-1] == None:
+            brackets = brackets[:-1]
+            last = None
+            break
+        last = brackets[-1][0]
+        last = (last[0] + 1, None)
+
+    brackets = [b[0] for b in brackets if b[1][0] > row]
+
+    path = []
+
+    for b in brackets:
+        row = b[0]
+        line = lines[row][: b[1]]
+        parantheses = find_delim([line], None, 0, delim="(")
+        while parantheses != None:
+            line = line[: parantheses[0][1]] + line[parantheses[1][1] + 1 :]
+            parantheses = find_delim([line], None, 0, delim="(")
+        line = line.strip().replace("\t", " ").replace("  ", " ")
+
+        if line.startswith("class"):
+            path.append((line.split(" ")[1], "CLASS"))
+        elif line.count(" ") > 1:
+            path.append((line.split(" ")[-1], "METHOD"))
+        else:
+            path.append((line, "BLOCK"))
+
+    return path

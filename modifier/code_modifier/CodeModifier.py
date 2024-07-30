@@ -30,8 +30,8 @@ class CodeModifier(StatementModifier):
             interval[0] for interval in intervals
         )
 
-        start = min(interval[0] for interval in intervals)
-        end = max(interval[1] for interval in intervals)
+        start = 0  # min(interval[0] for interval in intervals)
+        end = len(part.content)  # max(interval[1] for interval in intervals)
 
         extracted = part.content[start:end]
 
