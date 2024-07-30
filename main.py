@@ -98,11 +98,7 @@ def process_file(path: str, out: str):
     initial_statements = None
     with open(path) as f:
         initial_statements = deserialize_statements(f)
-    initial_statements = [
-        format_statement(s)
-        for s in initial_statements
-        # if s.object.id == "75ddeae907d081a29bd074cb6783514ba8bf4e50"
-    ]
+    initial_statements = [format_statement(s) for s in initial_statements]
     initial_total = len(initial_statements)
     statements = copy.deepcopy(initial_statements)
 
