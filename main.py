@@ -211,6 +211,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "-l", "--log", action=argparse.BooleanOptionalAction, default=False
     )
+    parser.add_argument(
+        "-d", "--dir", action=argparse.BooleanOptionalAction, default=False
+    )
 
     args = parser.parse_args()
 
@@ -218,6 +221,7 @@ if __name__ == "__main__":
     generate = args.generate
     out_folder = args.out
     log = args.log
+    dir = args.dir
 
     if out_folder != "" and out_folder[-1] != "/":
         out_folder += "/"
@@ -230,8 +234,32 @@ if __name__ == "__main__":
     if not os.path.exists(filename):
         raise FileNotFoundError(filename)
 
-    if generate:
-        repo = Repo(filename)
-        generate_files(repo, out_folder, filename)
+    if dir:
+        for f in os.listdir(filename):
+
+            if generate:
+                if not os.path.exists(filename + "/" + f + "/.git"):
+                    print("Ignore", f, "because it does not contains .git")
+                    continue
+                repo = Repo(filename + "/" + f)
+                print(filename + "/" + f)
+                generate_files(repo, out_folder, f)
+            else:
+                if not "." in f:
+                    continue
+                f = f[: f.rfind(".")]
+                path = filename + "/" + f + ".json"
+                name = path[path.rfind("/") + 1 : path.rfind(".")]
+                if os.path.exists(filename + "/" + f + "_refactoring.json"):
+                    print(filename + "/" + f)
+                    identify_task(
+                        filename + "/" + f + ".json", out_folder, full_log=log
+                    )
     else:
-        identify_task(filename, out_folder, full_log=log)
+        if generate:
+            repo = Repo(filename)
+            generate_files(
+                repo, out_folder, ("/" + filename)[("/" + filename).rfind("/") + 1 :]
+            )
+        else:
+            identify_task(filename, out_folder, full_log=log)

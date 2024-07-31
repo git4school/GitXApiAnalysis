@@ -6,15 +6,16 @@ To do so git project are converted to xApi files, then the program tries to clas
 
 ## Running
 
+You can use `-d` flag to execute the command on all subfile of the directory
+You can use `-o` flag to change output folder
+
 ### Generate files
 
 `python main.py path/to/repo -g`
-Output location can be customized with `-o`
 
 ### Run analysis
 
 `python main.py path/to/xapi`
-Output location can be customized with `-o`
 
 ## Output Format
 
