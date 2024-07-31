@@ -145,6 +145,11 @@ def split(statement, differentials, diff, k, intervals):
 
     newdifferential: Differential = Differential(diff.__dict__)
     newstatement.object.definition.extensions["git"] = [newdifferential]
+    newstatement.context.extensions["origins"] = [statement.object.id]
+    if "origins" in statement.context.extensions:
+        newstatement.context.extensions["origins"] += statement.context.extensions[
+            "origins"
+        ]
     newdifferential.parts = []
     newdifferential.parts.append(part)
 
