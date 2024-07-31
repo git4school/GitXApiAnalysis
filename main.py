@@ -90,7 +90,7 @@ def generate_files(repo: Repo, out_folder, repo_name: str):
     print("Files where collected for", repo_path)
 
 
-def process_file(path: str, out: str):
+def identify_task(path: str, out: str, full_log: bool = False):
 
     repo_name = path[path.rfind("/") + 1 : path.rfind(".")]
     refactoring_file = path[: path.rfind(".")] + "_refactoring.json"
@@ -147,25 +147,38 @@ def process_file(path: str, out: str):
         else:
             scores["UNKNOWN"] += 1
 
-    for k in scores:
-        if k in debug.CLASS_MASK:
-            continue
-        safe_name: str = k.lower().replace(" ", "_")
+    if full_log:
+        for k in scores:
+            if k in debug.CLASS_MASK:
+                continue
+            safe_name: str = k.lower().replace(" ", "_")
+            dump(
+                safe_name,
+                out,
+                statements,
+                lambda x: "task" in x.context.extensions
+                and x.context.extensions["task"]["id"] == k,
+            )
         dump(
-            safe_name,
+            "unknown",
             out,
             statements,
-            lambda x: "task" in x.context.extensions
-            and x.context.extensions["task"]["id"] == k,
+            lambda x: not "task" in x.context.extensions,
         )
-    dump(
-        "unknown",
-        out,
-        statements,
-        lambda x: not "task" in x.context.extensions,
-    )
 
-    dump(repo_name + "_processed", out, statements, lambda x: True)
+    if full_log:
+        dump(repo_name + "_task", out, statements, lambda x: True)
+
+    with open(out + repo_name + "_compressed.json", "w") as f:
+        f.write(
+            json.dumps(
+                [
+                    (dict(stmt.context.extensions) | {"id": stmt.object.id})
+                    for stmt in statements
+                ],
+                indent=2,
+            )
+        )
 
     scores = [(k, scores[k]) for k in scores]
     scores.sort(key=lambda v: -v[1])
@@ -195,12 +208,16 @@ if __name__ == "__main__":
         "--generate", "-g", action=argparse.BooleanOptionalAction, default=False
     )
     parser.add_argument("-o", "--out", default="")
+    parser.add_argument(
+        "-l", "--log", action=argparse.BooleanOptionalAction, default=False
+    )
 
     args = parser.parse_args()
 
     filename = args.filename
     generate = args.generate
     out_folder = args.out
+    log = args.log
 
     if out_folder != "" and out_folder[-1] != "/":
         out_folder += "/"
@@ -217,4 +234,4 @@ if __name__ == "__main__":
         repo = Repo(filename)
         generate_files(repo, out_folder, filename)
     else:
-        process_file(filename, out_folder)
+        identify_task(filename, out_folder, full_log=log)
