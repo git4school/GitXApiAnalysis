@@ -41,7 +41,6 @@ class AnnotationTask(CodeTaskIdentifier):
                     or part.content[parantheses_position[1][0]][0] != symbol
                 ):
                     extractions.append(([(i, i + 1)], symbol, line))
-                    i = parantheses_position[1][0]
                 else:
                     extractions.append(
                         (

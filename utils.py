@@ -45,9 +45,14 @@ def tokenize(s: str) -> list[str]:
 def find_token_substitution(s1: str, s2: str):
     IDENTIFIER_NAME = javalang.tokenizer.Identifier.__name__
     LITTERAL = []
+    s1_tokens = None
+    s2_tokens = None
 
-    s1_tokens = tokenize(s1)
-    s2_tokens = tokenize(s2)
+    try:
+        s1_tokens = tokenize(s1)
+        s2_tokens = tokenize(s2)
+    except:
+        return None
 
     LITTERAL += [
         v[2] for v in s1_tokens if issubclass(v[3], javalang.tokenizer.Literal)
