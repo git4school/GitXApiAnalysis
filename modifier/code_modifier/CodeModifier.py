@@ -162,7 +162,7 @@ class CodeModifier(StatementModifier):
         statement: Statement = st_getter(i)
 
         if not "git" in statement.object.definition.extensions:
-            return
+            return [statement]
 
         differentials: list[Differential] = statement.object.definition.extensions[
             "git"

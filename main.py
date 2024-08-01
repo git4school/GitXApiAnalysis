@@ -124,6 +124,7 @@ def identify_task(path: str, out: str, full_log: bool = False):
         MethodInvocationTask(),
         BlockTask(),
         SyntaxTypo(),
+        MarkCompleted(),
     ]
 
     code_modifiers += [
@@ -173,7 +174,12 @@ def identify_task(path: str, out: str, full_log: bool = False):
         f.write(
             json.dumps(
                 [
-                    (dict(stmt.context.extensions) | {"id": stmt.object.id})
+                    (
+                        dict(stmt.context.extensions)
+                        | {"id": stmt.object.id}
+                        | {"timestamp": st.timestamp.timestamp()}
+                        | {"verb": st.verb.id}
+                    )
                     for stmt in statements
                 ],
                 indent=2,

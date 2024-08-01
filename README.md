@@ -93,3 +93,4 @@ Full list of current tasks :
 - USE_OLD_VARIABLE
 - VariableAssignStatementAdd
 - VariableAssignStatementRemove
+- Completed

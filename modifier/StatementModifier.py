@@ -39,15 +39,17 @@ class StatementModifier(Modifier):
     ) -> Statement:
         newstatement: Statement = StatementModifier.new_statement(
             origin=statement,
-            id=self.generator_prefix() + "~" + str(hash(diff.file)),
+            id=self.generator_prefix()
+            + ("~" + str(hash(diff.file)) if diff != None else ""),
         )
+        newstatement.object.definition.extensions["git"] = []
+        if diff != None:
+            differentials: list[Differential] = statement.object.definition.extensions[
+                "git"
+            ]
 
-        differentials: list[Differential] = statement.object.definition.extensions[
-            "git"
-        ]
-
-        newstatement.object.definition.extensions["git"] = [diff]
-        differentials.remove(diff)
+            newstatement.object.definition.extensions["git"] = [diff]
+            differentials.remove(diff)
 
         modifer(newstatement)
         return newstatement
