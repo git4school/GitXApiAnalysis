@@ -1,0 +1,255 @@
+{
+  "ADD_RETURN_VALUE": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "ADD"
+  },
+  "ADD_VARIABLE_VALUE": {
+    "TEST": "UNKNOWN",
+    "SOURCE": "ADD"
+  },
+  "AnnotationAdd": {
+    "TEST": "ADD",
+    "SOURCE": "NOT_INTERPRETED"
+  },
+  "AnnotationRemove": {
+    "TEST": "REMOVE",
+    "SOURCE": "NOT_INTERPRETED"
+  },
+  "ASSIGN_VARIABLE": {
+    "TEST": "EDIT",
+    "SOURCE": "ADD"
+  },
+  "BlockAdd": {
+    "TEST": "ADD",
+    "SOURCE": "ADD"
+  },
+  "BlockRemove": {
+    "TEST": "REMOVE",
+    "SOURCE": "REMOVE"
+  },
+  "CHANGE_METHOD_INVOCATED": {
+    "TEST": "EDIT",
+    "SOURCE": "EDIT"
+  },
+  "CHANGE_VARIABLE_USED": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "EDIT"
+  },
+  "CHANGE_VARIABLE_VALUE": {
+    "TEST": "EDIT",
+    "SOURCE": "EDIT"
+  },
+  "LITTERAL_TO_VARIABLE": {
+    "TEST": "EDIT",
+    "SOURCE": "EDIT"
+  },
+  "VARIABLE_TO_LITTERAL": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "EDIT"
+  },
+  "ClassAdd": {
+    "TEST": "ADD",
+    "SOURCE": "ADD"
+  },
+  "ClassRemove": {
+    "TEST": "REMOVE",
+    "SOURCE": "REMOVE"
+  },
+  "COMMENT_ADDITION": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "NOT_INTERPRETED"
+  },
+  "COMMENT_DELETION": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "NOT_INTERPRETED"
+  },
+  "COMMENT_EDITION": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "NOT_INTERPRETED"
+  },
+  "COMMENT_MOVED": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "NOT_INTERPRETED"
+  },
+  "CONDITION": {
+    "TEST": "EDIT",
+    "SOURCE": "EDIT"
+  },
+  "ADD_FUNCTION_PARAMETER": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "EDIT"
+  },
+  "REMOVE_FUNCTION_PARAMETER": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "EDIT"
+  },
+  "EDIT_FUNCTION_PARAMETERS": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "EDIT"
+  },
+  "EDIT_RETURN_VALUE": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "EDIT"
+  },
+  "CHANGE_LITTERAL_VALUE": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "EDIT"
+  },
+  "CutPaste": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "REFACTOR"
+  },
+  "DeclarationStatementAdd": {
+    "TEST": "ADD",
+    "SOURCE": "ADD"
+  },
+  "DeclarationStatementRemove": {
+    "TEST": "REMOVE",
+    "SOURCE": "REMOVE"
+  },
+  "EmptyCommit": null,
+  "EmptyLine": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "NOT_INTERPRETED"
+  },
+  "ForAdd": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "ADD"
+  },
+  "ForRemove": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "REMOVE"
+  },
+  "IfAdd": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "ADD"
+  },
+  "IfRemove": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "REMOVE"
+  },
+  "SyntaxTypoAdd": {
+    "TEST": "ADD",
+    "SOURCE": "ADD"
+  },
+  "SyntaxTypoRemove": {
+    "TEST": "EDIT",
+    "SOURCE": "EDIT"
+  },
+  "FunctionAdd": {
+    "TEST": "ADD",
+    "SOURCE": "ADD"
+  },
+  "FunctionRemove": {
+    "TEST": "REMOVE",
+    "SOURCE": "REMOVE"
+  },
+  "ImportStatementAdd": null,
+  "ImportStatementRemove": null,
+  "InvocationStatementAdd": {
+    "TEST": "ADD",
+    "SOURCE": "ADD"
+  },
+  "InvocationStatementRemove": {
+    "TEST": "REMOVE",
+    "SOURCE": "REMOVE"
+  },
+  "LineBreakChange": {
+    "TEST": null,
+    "SOURCE": "REFACTOR"
+  },
+  "LineSpacingChange": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "REFACTOR"
+  },
+  "ModifyVariableValue": {
+    "TEST": "EDIT",
+    "SOURCE": "EDIT"
+  },
+  "NotSource": null,
+  "PackageStatementAdd": {
+    "TEST": "ADD",
+    "SOURCE": "ADD"
+  },
+  "PackageStatementRemove": {
+    "TEST": "REMOVE",
+    "SOURCE": "REMOVE"
+  },
+  "RefactoringMiner": {
+    "TEST": "REFACTOR",
+    "SOURCE": "REFACTOR"
+  },
+  "RENAME_VARIABLE": {
+    "TEST": "REFACTOR",
+    "SOURCE": "REFACTOR"
+  },
+  "RENAME_FUNCTION": {
+    "TEST": "REFACTOR",
+    "SOURCE": "REFACTOR"
+  },
+  "REPLACE_FUNCTION": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "EDIT"
+  },
+  "REPLACE_METHOD": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "EDIT"
+  },
+  "ReturnStatementAdd": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "ADD"
+  },
+  "ReturnStatementRemove": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "EDIT"
+  },
+  "STRING_EDITION": {
+    "TEST": "EDIT",
+    "SOURCE": "EDIT"
+  },
+  "MODIFY_VARIABLE_VALUE": {
+    "TEST": "EDIT",
+    "SOURCE": "EDIT"
+  },
+  "TrimEditionContent": null,
+  "TRUE_TO_FALSE": {
+    "TEST": "EDIT",
+    "SOURCE": "EDIT"
+  },
+  "FALSE_TO_TRUE": {
+    "TEST": "EDIT",
+    "SOURCE": "EDIT"
+  },
+  "TYPO_ADD": {
+    "TEST": "EDIT",
+    "SOURCE": "EDIT"
+  },
+  "TYPO_DEL": {
+    "TEST": "EDIT",
+    "SOURCE": "EDIT"
+  },
+  "UNASSIGN_VARIABLE": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "EDIT"
+  },
+  "USE_NEW_VARIABLE": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "EDIT"
+  },
+  "USE_OLD_VARIABLE": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "EDIT"
+  },
+  "VariableAssignStatementAdd": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "EDIT"
+  },
+  "VariableAssignStatementRemove": {
+    "TEST": "NOT_INTERPRETED",
+    "SOURCE": "EDIT"
+  },
+  "Completed": {
+    "TEST": "COMPLETED",
+    "SOURCE": "COMPLETED"
+  }
+}
