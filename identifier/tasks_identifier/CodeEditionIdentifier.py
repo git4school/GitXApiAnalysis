@@ -86,11 +86,6 @@ def indentify_edition(prefix, before, after, suffix, tags):
     if len(strip_before) == 1 and "DELETE" in tags:
         return "TYPO_DEL"
 
-    if before.strip().lower() == "fals" and after.strip().lower() == "tru":
-        return "FALSE_TO_TRUE"
-    if before.strip().lower() == "tru" and after.strip().lower() == "fals":
-        return "TRUE_TO_FALSE"
-
     if "WORD_EDIT" in tags:
         if strip_prefix.endswith(".") and strip_suffix.startswith("("):
             return "REPLACE_METHOD"
