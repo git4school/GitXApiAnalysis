@@ -272,6 +272,8 @@ def generate_couple_xes_for_dir(
     filter: Callable[[dict, str], bool],
     get_clazz: Callable[[dict], str],
 ):
+    vertices = set()
+    edges = set()
     event_log = EventLog()
 
     for file in os.listdir(input):
@@ -295,19 +297,23 @@ def generate_couple_xes_for_dir(
                 continue
 
             event["concept:name"] = pred + "\n" + clazz
+            vertices.add((pred, clazz))
             pred = clazz
             event["time:timestamp"] = make_datetime(st["timestamp"])
             event["metadata"] = str(st)
             trace.append(event)
+            if len(trace) >= 2:
+                edges.add((trace[-2]["concept:name"], trace[-1]["concept:name"]))
 
         event = Event()
         event["concept:name"] = pred + "\nEND"
+        vertices.add((pred, "END"))
         event["time:timestamp"] = make_datetime(data[-1]["timestamp"])
         event["metadata"] = str({})
         trace.append(event)
-
         event_log.append(trace)
 
+    print("VERTICES", len(vertices), "EDGES", len(edges))
     write_xes(event_log, out)
 
 
@@ -357,3 +363,7 @@ def generate_from_mapping_group():
         return True
 
     generate_couple_xes_for_dir("out", "out.xes", filter, clazz_from_mapping)
+
+
+if __name__ == "__main__":
+    generate_from_mapping_group()
